@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三江学院志愿者服务系统</title>
+    <link rel="stylesheet" href="css/theme.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", sans-serif; }
+        body { min-height: 100vh; background: #fff; color: #1f2937; }
+        .home { min-height: calc(100vh - 64px); display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 46px; align-items: center; width: min(1180px, calc(100% - 48px)); margin: 0 auto; padding: 58px 0 34px; }
+        .brand { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+        .logo-icon { width: 56px; height: 56px; border-radius: 18px; background: linear-gradient(135deg, #d92121, #ff7a7a); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 900; box-shadow: 0 16px 32px rgba(217,33,33,.22); }
+        .logo-text { font-size: 28px; line-height: 1.25; font-weight: 900; color: #191f2a; }
+        .hero-copy h1 { font-size: 54px; line-height: 1.16; color: #991b1b; margin-bottom: 22px; letter-spacing: -.04em; }
+        .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 32px; }
+        .stat { padding: 18px; border-radius: 18px; background: rgba(255,255,255,.86); border: 1px solid #f3dadd; box-shadow: 0 12px 28px rgba(217,33,33,.07); }
+        .stat strong { display: block; color: #d92121; font-size: 25px; margin-bottom: 6px; }
+        .stat span { display: block; color: #6b7280; font-size: 13px; line-height: 1.5; }
+        .hero-card { position: relative; min-height: 600px; border-radius: 34px; overflow: hidden; background: linear-gradient(135deg, #d92121, #7f1018); box-shadow: 0 32px 90px rgba(127,16,24,.26); display: flex; align-items: center; justify-content: center; padding: 44px; }
+        .hero-card::before,.hero-card::after { content: ""; position: absolute; border-radius: 50%; background: rgba(255,255,255,.12); }
+        .hero-card::before { width: 320px; height: 320px; right: -70px; top: -60px; }
+        .hero-card::after { width: 230px; height: 230px; left: 70px; bottom: -55px; }
+        .banner-content { position: relative; z-index: 1; text-align: center; color: white; }
+        .banner-slogan { display: flex; gap: 18px; justify-content: center; margin-bottom: 38px; }
+        .slogan-box { width: 105px; height: 105px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 900; color: #fff; box-shadow: 0 14px 30px rgba(0,0,0,.16); }
+        .slogan-box:nth-child(1) { background: #ff6b6b; }
+        .slogan-box:nth-child(2) { background: #22a451; }
+        .slogan-box:nth-child(3) { background: #ffb23f; }
+        .banner-text { font-size: 42px; font-weight: 900; margin-bottom: 18px; }
+        .banner-login-btn { min-width: 260px; padding: 20px 56px; background: #fff; color: #d92121; border: 0; border-radius: 999px; font-size: 18px; font-weight: 900; cursor: pointer; }
+        .footer { padding: 20px; text-align: center; color: #8a8f9c; font-size: 14px; }
+        @media (max-width: 980px) { .home { grid-template-columns: 1fr; padding-top: 34px; } .hero-copy h1 { font-size: 42px; } .hero-card { min-height: 480px; } }
+        @media (max-width: 620px) { .banner-slogan { flex-direction: column; align-items: center; } .hero-card { padding: 28px; } .banner-login-btn { min-width: 220px; padding: 18px 48px; } }
+    </style>
+</head>
+<body>
+    <main class="home">
+        <section class="hero-copy">
+            <div class="brand">
+                <div class="logo-icon">志</div>
+                <div class="logo-text">三江学院志愿者服务系统</div>
+            </div>
+            <h1>让每一次志愿服务都被看见、被记录。</h1>
+            <div class="stats">
+                <div class="stat"><strong>奉献</strong><span>主动担当，无私付出</span></div>
+                <div class="stat"><strong>有爱</strong><span>心怀善意，传递温暖</span></div>
+                <div class="stat"><strong>互助</strong><span>携手同行，彼此支持</span></div>
+                <div class="stat"><strong>进步</strong><span>共同成长，不断向前</span></div>
+            </div>
+        </section>
+        <section class="hero-card">
+            <div class="banner-content">
+                <div class="banner-slogan">
+                    <div class="slogan-box">有你</div>
+                    <div class="slogan-box">有我</div>
+                    <div class="slogan-box">有爱</div>
+                </div>
+                <div class="banner-text">传递爱心，温暖世界</div>
+                <button class="banner-login-btn" onclick="location.href='role-select.html'">立即登录</button>
+            </div>
+        </section>
+    </main>
+    <div class="footer">© 2026 三江学院志愿者服务系统 版权所有</div>
+</body>
+</html>

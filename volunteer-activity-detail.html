@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="0;url=activity/detail.html">
+<title>跳转中...</title>
+<script>
+const id = new URLSearchParams(location.search).get("id");
+location.replace("activity/detail.html" + (id ? "?id=" + encodeURIComponent(id) : ""));
+</script>
+</head>
+<body></body>
+</html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - 管理员</title>
+    <link rel="stylesheet" href="css/theme.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", sans-serif; }
+        body { background: #f8f8f8; padding-top: 160px; overflow-x: hidden; }
+        a { text-decoration: none; color: inherit; }
+        .container { width: min(1120px, calc(100% - 40px)); margin: 36px auto; }
+        .page-title { font-size: 26px; color: #222; margin-bottom: 22px; padding-left: 14px; border-left: 4px solid #d92121; }
+        .content-box { background: rgba(255,255,255,.95); padding: 30px; border-radius: 22px; box-shadow: 0 20px 50px rgba(217,33,33,.08); }
+        .section-title { font-size: 18px; color: #222; margin-bottom: 18px; }
+        .btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+        .btn { background: #d92121; color: #fff; border: 0; cursor: pointer; border-radius: 5px; padding: 10px 20px; font-size: 14px; }
+        .btn:hover { background: #b91616; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-outline { background: #fff; color: #d92121; border: 1px solid #d92121; }
+        .btn-outline:hover { background: #fff5f5; color: #d92121; }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            width: min(420px, 100%);
+            background: #fff;
+            border-radius: 8px;
+            padding: 28px 30px 24px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
+        }
+        .modal h3 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 22px;
+            padding-left: 12px;
+            border-left: 4px solid #d92121;
+        }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+        .btn-cancel { background: #fff; color: #666; border: 1px solid #ddd; }
+        .btn-cancel:hover { background: #f5f5f5; color: #666; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2 class="page-title">个人中心</h2>
+    <div class="content-box">
+        <h3 class="section-title">基本信息</h3>
+        <div class="std-form-2col">
+            <div class="form-row">
+                <label class="form-label" for="accountName">账号</label>
+                <div class="form-field"><input id="accountName" readonly></div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="roleName">角色</label>
+                <div class="form-field"><input id="roleName" value="系统管理员" readonly></div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="realName">姓名</label>
+                <div class="form-field"><input id="realName" placeholder="请输入姓名"></div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="phone">联系方式</label>
+                <div class="form-field">
+                    <input id="phone" type="tel" maxlength="11" placeholder="请输入11位手机号" autocomplete="tel">
+                    <div id="phoneHint" class="field-hint"></div>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="email">邮箱</label>
+                <div class="form-field">
+                    <input id="email" type="email" placeholder="请输入邮箱" autocomplete="email">
+                    <div id="emailHint" class="field-hint"></div>
+                </div>
+            </div>
+        </div>
+        <div class="btn-row">
+            <button class="btn" type="button" onclick="saveProfile()">保存修改</button>
+            <button class="btn btn-outline" type="button" onclick="openPasswordModal()">修改密码</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="passwordModal" onclick="closePasswordModalOnOverlay(event)">
+    <div class="modal" role="dialog" aria-labelledby="passwordModalTitle">
+        <h3 id="passwordModalTitle">修改密码</h3>
+        <div class="std-form-1col">
+            <div class="form-row">
+                <label class="form-label" for="oldPassword">原密码</label>
+                <div class="form-field">
+                    <input id="oldPassword" type="password" placeholder="请输入原密码" autocomplete="current-password">
+                    <div id="oldPasswordHint" class="field-hint"></div>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="newPassword">新密码</label>
+                <div class="form-field">
+                    <input id="newPassword" type="password" placeholder="至少6位" autocomplete="new-password">
+                    <div id="newPasswordHint" class="field-hint"></div>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="confirmNewPassword">确认新密码</label>
+                <div class="form-field">
+                    <input id="confirmNewPassword" type="password" placeholder="再次输入新密码" autocomplete="new-password">
+                    <div id="confirmNewPasswordHint" class="field-hint"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-cancel" type="button" onclick="closePasswordModal()">取消</button>
+            <button class="btn" type="button" id="confirmPasswordBtn" onclick="submitPasswordChange()">确认修改</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/common.js"></script>
+<script>
+const CHINA_PHONE_REG = /^1[3-9]\d{9}$/;
+const EMAIL_REG = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ADMIN_INFO_KEY = "admin_profile_info_v1";
+
+function adminInfoStorageKey() {
+    const uid = currentUserId() || "guest";
+    return `${ADMIN_INFO_KEY}_${uid}`;
+}
+
+function loadStoredProfile() {
+    try {
+        return JSON.parse(localStorage.getItem(adminInfoStorageKey()) || "{}");
+    } catch (e) {
+        return {};
+    }
+}
+
+function saveStoredProfile(info) {
+    localStorage.setItem(adminInfoStorageKey(), JSON.stringify(info));
+}
+
+function setPhoneHint(text) {
+    document.getElementById("phoneHint").textContent = text || "";
+}
+
+function setEmailHint(text) {
+    document.getElementById("emailHint").textContent = text || "";
+}
+
+function isValidChinaPhone(phone) {
+    return CHINA_PHONE_REG.test(phone);
+}
+
+function isValidEmail(email) {
+    return EMAIL_REG.test(email);
+}
+
+function validatePhone() {
+    const phone = document.getElementById("phone").value.trim();
+    if (!phone) {
+        setPhoneHint("请输入11位手机号");
+        return false;
+    }
+    if (!isValidChinaPhone(phone)) {
+        setPhoneHint("请输入正确的11位手机号");
+        return false;
+    }
+    setPhoneHint("");
+    return true;
+}
+
+function validateEmail() {
+    const email = document.getElementById("email").value.trim();
+    if (!email) {
+        setEmailHint("请输入邮箱");
+        return false;
+    }
+    if (!isValidEmail(email)) {
+        setEmailHint("请输入正确的邮箱格式");
+        return false;
+    }
+    setEmailHint("");
+    return true;
+}
+
+function initPhoneValidation() {
+    const phoneInput = document.getElementById("phone");
+    phoneInput.addEventListener("input", () => {
+        phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 11);
+        if (phoneInput.value.length > 0) {
+            validatePhone();
+        } else {
+            setPhoneHint("");
+        }
+    });
+    phoneInput.addEventListener("blur", validatePhone);
+}
+
+function initEmailValidation() {
+    const emailInput = document.getElementById("email");
+    emailInput.addEventListener("input", () => {
+        if (emailInput.value.trim()) {
+            validateEmail();
+        } else {
+            setEmailHint("");
+        }
+    });
+    emailInput.addEventListener("blur", validateEmail);
+}
+
+function fillProfileForm() {
+    const stored = loadStoredProfile();
+    document.getElementById("accountName").value = currentUsername() || "admin";
+    document.getElementById("realName").value = stored.realName || localStorage.getItem("realName") || "系统管理员";
+    document.getElementById("phone").value = stored.phone || "13800138000";
+    document.getElementById("email").value = stored.email || "admin@sanjian.edu.cn";
+}
+
+function saveProfile() {
+    const realName = document.getElementById("realName").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const email = document.getElementById("email").value.trim();
+
+    if (!realName) {
+        alert("请填写姓名");
+        return;
+    }
+    if (!validatePhone()) {
+        alert("请填写正确的11位手机号");
+        return;
+    }
+    if (!validateEmail()) {
+        alert("请填写正确的邮箱格式");
+        return;
+    }
+
+    saveStoredProfile({ realName, phone, email });
+    localStorage.setItem("realName", realName);
+    alert("保存成功");
+    if (typeof updateHeaderUserInfo === "function") updateHeaderUserInfo();
+}
+
+function setPasswordFieldHint(id, text) {
+    document.getElementById(id).textContent = text || "";
+}
+
+function clearPasswordHints() {
+    setPasswordFieldHint("oldPasswordHint", "");
+    setPasswordFieldHint("newPasswordHint", "");
+    setPasswordFieldHint("confirmNewPasswordHint", "");
+}
+
+function resetPasswordForm() {
+    document.getElementById("oldPassword").value = "";
+    document.getElementById("newPassword").value = "";
+    document.getElementById("confirmNewPassword").value = "";
+    clearPasswordHints();
+}
+
+function openPasswordModal() {
+    resetPasswordForm();
+    document.getElementById("passwordModal").classList.add("show");
+    document.getElementById("oldPassword").focus();
+}
+
+function closePasswordModal() {
+    document.getElementById("passwordModal").classList.remove("show");
+    resetPasswordForm();
+}
+
+function closePasswordModalOnOverlay(event) {
+    if (event.target.id === "passwordModal") {
+        closePasswordModal();
+    }
+}
+
+function validateConfirmNewPassword() {
+    const newPassword = document.getElementById("newPassword").value;
+    const confirmNewPassword = document.getElementById("confirmNewPassword").value;
+    if (!confirmNewPassword) {
+        setPasswordFieldHint("confirmNewPasswordHint", "请再次输入新密码");
+        return false;
+    }
+    if (newPassword !== confirmNewPassword) {
+        setPasswordFieldHint("confirmNewPasswordHint", "两次输入的新密码不一致");
+        return false;
+    }
+    setPasswordFieldHint("confirmNewPasswordHint", "");
+    return true;
+}
+
+function validatePasswordForm() {
+    clearPasswordHints();
+    const oldPassword = document.getElementById("oldPassword").value;
+    const newPassword = document.getElementById("newPassword").value;
+    const confirmNewPassword = document.getElementById("confirmNewPassword").value;
+    let valid = true;
+
+    if (!oldPassword.trim()) {
+        setPasswordFieldHint("oldPasswordHint", "原密码不能为空");
+        valid = false;
+    }
+    if (!newPassword) {
+        setPasswordFieldHint("newPasswordHint", "新密码不能为空");
+        valid = false;
+    } else if (newPassword.length < 6) {
+        setPasswordFieldHint("newPasswordHint", "新密码至少需要 6 位");
+        valid = false;
+    } else if (oldPassword && newPassword === oldPassword) {
+        setPasswordFieldHint("newPasswordHint", "新密码不能与原密码相同");
+        valid = false;
+    }
+    if (!confirmNewPassword) {
+        setPasswordFieldHint("confirmNewPasswordHint", "请再次输入新密码");
+        valid = false;
+    } else if (newPassword && newPassword !== confirmNewPassword) {
+        setPasswordFieldHint("confirmNewPasswordHint", "两次输入的新密码不一致");
+        valid = false;
+    }
+
+    return valid;
+}
+
+function initPasswordValidation() {
+    const fields = [
+        {
+            id: "oldPassword",
+            validate: () => {
+                const value = document.getElementById("oldPassword").value;
+                if (!value.trim()) {
+                    setPasswordFieldHint("oldPasswordHint", "原密码不能为空");
+                    return false;
+                }
+                setPasswordFieldHint("oldPasswordHint", "");
+                return true;
+            }
+        },
+        {
+            id: "newPassword",
+            validate: () => {
+                const oldPassword = document.getElementById("oldPassword").value;
+                const newPassword = document.getElementById("newPassword").value;
+                if (!newPassword) {
+                    setPasswordFieldHint("newPasswordHint", "新密码不能为空");
+                    return false;
+                }
+                if (newPassword.length < 6) {
+                    setPasswordFieldHint("newPasswordHint", "新密码至少需要 6 位");
+                    return false;
+                }
+                if (oldPassword && newPassword === oldPassword) {
+                    setPasswordFieldHint("newPasswordHint", "新密码不能与原密码相同");
+                    return false;
+                }
+                setPasswordFieldHint("newPasswordHint", "");
+                if (document.getElementById("confirmNewPassword").value) {
+                    validateConfirmNewPassword();
+                }
+                return true;
+            }
+        },
+        {
+            id: "confirmNewPassword",
+            validate: validateConfirmNewPassword
+        }
+    ];
+
+    fields.forEach(({ id, validate }) => {
+        const input = document.getElementById(id);
+        input.addEventListener("input", validate);
+        input.addEventListener("blur", validate);
+    });
+}
+
+async function submitPasswordChange() {
+    if (!validatePasswordForm()) return;
+
+    const oldPassword = document.getElementById("oldPassword").value;
+    const newPassword = document.getElementById("newPassword").value;
+    const btn = document.getElementById("confirmPasswordBtn");
+
+    btn.disabled = true;
+    btn.textContent = "修改中...";
+
+    try {
+        await api("/api/v1/admin/profile/password", {
+            method: "PUT",
+            body: JSON.stringify({ oldPassword, newPassword })
+        });
+        closePasswordModal();
+        alert("密码修改成功，请重新登录");
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("username");
+        localStorage.removeItem("realName");
+        localStorage.removeItem("backendRole");
+        localStorage.removeItem("userRole");
+        location.href = "login.html";
+    } catch (error) {
+        alert(error.message || "密码修改失败");
+        btn.disabled = false;
+        btn.textContent = "确认修改";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (!requireLogin("ADMIN")) return;
+    initPhoneValidation();
+    initEmailValidation();
+    initPasswordValidation();
+    fillProfileForm();
+});
+</script>
+</body>
+</html>

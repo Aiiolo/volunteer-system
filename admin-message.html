@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消息通知</title>
+    <link rel="stylesheet" href="css/theme.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", sans-serif; }
+        body { background: #f8f8f8; }
+        .main-content {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 40px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .page-title {
+            font-size: 26px;
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid #d92121;
+        }
+        .toolbar { margin-bottom: 18px; }
+        .btn-add {
+            background: #d92121;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .search-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-row input {
+            flex: 1;
+            padding: 9px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .btn-search {
+            background: #d92121;
+            color: #fff;
+            border: none;
+            padding: 9px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: center; font-size: 14px; }
+        th { background: #f5f5f5; }
+        td.title-cell { text-align: left; max-width: 280px; }
+        .status-draft { color: #ff9900; font-weight: 600; }
+        .status-published { color: #19be6b; font-weight: 600; }
+        .btn-edit { background: #2d8cf0; color: #fff; border: 0; padding: 5px 10px; border-radius: 3px; margin: 2px; cursor: pointer; }
+        .btn-view { background: #7a1212; color: #fff; border: 0; padding: 5px 10px; border-radius: 3px; margin: 2px; cursor: pointer; }
+        .btn-del { background: #f53f3f; color: #fff; border: 0; padding: 5px 10px; border-radius: 3px; margin: 2px; cursor: pointer; }
+        .empty-tip { padding: 24px; color: #999; text-align: center; }
+        #editModal .activity-modal-panel,
+        #viewModal .activity-modal-panel { width: min(640px, 100%); }
+        #editModal .std-form-1col { margin-top: 4px; }
+        .btn-save-draft {
+            background: #888 !important;
+            color: #fff !important;
+            border: none !important;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-save-draft:hover { background: #777 !important; }
+        .view-detail-row { margin-bottom: 14px; }
+        .view-detail-row .label { color: #666; font-size: 14px; margin-bottom: 6px; }
+        .view-detail-row .value { font-size: 15px; color: #333; line-height: 1.6; }
+        .view-content {
+            background: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 12px;
+            white-space: pre-wrap;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-content">
+    <h2 class="page-title">平台通知消息管理</h2>
+    <div class="toolbar">
+        <button type="button" class="btn-add" onclick="openEditModal()">发布全局通知</button>
+    </div>
+    <div class="search-row">
+        <input type="text" id="noticeKeyword" placeholder="按标题搜索">
+        <button type="button" class="btn-search" onclick="renderList()">搜索</button>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>通知标题</th>
+            <th>通知类型</th>
+            <th>发布状态</th>
+            <th>发布时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="noticeTbody">
+        <tr><td colspan="5" class="empty-tip">加载中...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- 发布/编辑弹窗 -->
+<div class="activity-modal-overlay" id="editModal" onclick="closeEditOnOverlay(event)">
+    <div class="activity-modal-panel" role="dialog" aria-labelledby="editModalTitle" onclick="event.stopPropagation()">
+        <h2 id="editModalTitle">发布通知</h2>
+        <form class="std-form-1col" id="noticeForm" onsubmit="return false;">
+            <div class="form-row span-2">
+                <label class="form-label" for="noticeTitle">通知标题</label>
+                <div class="form-field">
+                    <input id="noticeTitle" type="text" placeholder="请输入通知标题" maxlength="100">
+                </div>
+            </div>
+            <div class="form-row span-2">
+                <label class="form-label" for="noticeType">通知类型</label>
+                <div class="form-field">
+                    <select id="noticeType">
+                        <option value="ACTIVITY">活动通知</option>
+                        <option value="MAINTENANCE">系统维护</option>
+                        <option value="REMINDER">温馨提醒</option>
+                        <option value="OTHER">其他</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row span-2 align-top">
+                <label class="form-label" for="noticeContent">通知内容</label>
+                <div class="form-field">
+                    <textarea id="noticeContent" placeholder="请输入通知内容" rows="6"></textarea>
+                </div>
+            </div>
+        </form>
+        <div class="activity-modal-actions">
+            <button type="button" class="btn-save-draft" onclick="saveNotice('DRAFT')">保存为草稿</button>
+            <button type="button" class="btn-publish" onclick="saveNotice('PUBLISHED')">发布</button>
+            <button type="button" class="btn-modal-cancel" onclick="closeEditModal()">取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- 查看详情弹窗（已发布，只读） -->
+<div class="activity-modal-overlay" id="viewModal" onclick="closeViewOnOverlay(event)">
+    <div class="activity-modal-panel" role="dialog" aria-labelledby="viewModalTitle" onclick="event.stopPropagation()">
+        <h2 id="viewModalTitle">通知详情</h2>
+        <div class="view-detail-row">
+            <div class="label">通知标题</div>
+            <div class="value" id="viewTitle">-</div>
+        </div>
+        <div class="view-detail-row">
+            <div class="label">通知类型</div>
+            <div class="value" id="viewType">-</div>
+        </div>
+        <div class="view-detail-row">
+            <div class="label">发布状态</div>
+            <div class="value"><span class="status-published">已发布</span></div>
+        </div>
+        <div class="view-detail-row">
+            <div class="label">发布时间</div>
+            <div class="value" id="viewTime">-</div>
+        </div>
+        <div class="view-detail-row">
+            <div class="label">通知内容</div>
+            <div class="view-content" id="viewContent"></div>
+        </div>
+        <div class="activity-modal-actions">
+            <button type="button" class="btn-modal-cancel" onclick="closeViewModal()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/common.js"></script>
+<script>
+const STORAGE_KEY = "admin_notice_list_v2";
+const TYPE_LABELS = {
+    ACTIVITY: "活动通知",
+    MAINTENANCE: "系统维护",
+    REMINDER: "温馨提醒",
+    OTHER: "其他"
+};
+
+let rows = [];
+let editingId = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (!requireLogin("ADMIN")) return;
+    rows = loadRows();
+    if (!rows.length) {
+        rows = [{
+            id: Date.now(),
+            title: "欢迎使用志愿服务系统",
+            type: "REMINDER",
+            content: "请按流程完成活动发布与报名审核。",
+            status: "PUBLISHED",
+            publishTime: formatTime(new Date()),
+            updatedAt: formatTime(new Date())
+        }];
+        persist();
+    }
+    renderList();
+    document.getElementById("noticeKeyword").addEventListener("keydown", e => {
+        if (e.key === "Enter") renderList();
+    });
+});
+
+function formatTime(d) {
+    const pad = n => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+function loadRows() {
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+        const v1 = localStorage.getItem("admin_notice_list_v1");
+        if (v1) {
+            try {
+                const list = JSON.parse(v1);
+                const migrated = list.map(x => ({
+                    id: x.id,
+                    title: x.title || "",
+                    type: x.type || "OTHER",
+                    content: x.content || "",
+                    status: x.status || "PUBLISHED",
+                    publishTime: x.publishTime || x.time || null,
+                    updatedAt: x.updatedAt || x.time || formatTime(new Date())
+                }));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+                return migrated;
+            } catch (e) { /* ignore */ }
+        }
+        return [];
+    }
+    try {
+        return JSON.parse(raw).map(normalizeRow);
+    } catch (e) {
+        return [];
+    }
+}
+
+function normalizeRow(r) {
+    return {
+        id: r.id,
+        title: r.title || "",
+        type: r.type || "OTHER",
+        content: r.content || "",
+        status: r.status === "DRAFT" ? "DRAFT" : "PUBLISHED",
+        publishTime: r.publishTime || null,
+        updatedAt: r.updatedAt || r.publishTime || ""
+    };
+}
+
+function persist() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+}
+
+function getKeyword() {
+    return (document.getElementById("noticeKeyword").value || "").trim();
+}
+
+function renderList() {
+    const kw = getKeyword();
+    const data = rows
+        .filter(x => !kw || (x.title && x.title.includes(kw)))
+        .sort((a, b) => {
+            const ta = a.publishTime || a.updatedAt || "";
+            const tb = b.publishTime || b.updatedAt || "";
+            return tb.localeCompare(ta);
+        });
+    const tbody = document.getElementById("noticeTbody");
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-tip">暂无通知</td></tr>';
+        return;
+    }
+    tbody.innerHTML = data.map(x => {
+        const isDraft = x.status === "DRAFT";
+        const statusHtml = isDraft
+            ? '<span class="status-draft">草稿</span>'
+            : '<span class="status-published">已发布</span>';
+        const timeText = isDraft ? "-" : (x.publishTime || "-");
+        const ops = isDraft
+            ? `<button type="button" class="btn-edit" onclick="openEditModal(${x.id})">编辑</button>
+               <button type="button" class="btn-del" onclick="removeNotice(${x.id})">删除</button>`
+            : `<button type="button" class="btn-view" onclick="openViewModal(${x.id})">查看</button>`;
+        return `<tr>
+            <td class="title-cell">${escapeHtml(x.title)}</td>
+            <td>${TYPE_LABELS[x.type] || TYPE_LABELS.OTHER}</td>
+            <td>${statusHtml}</td>
+            <td>${escapeHtml(timeText)}</td>
+            <td>${ops}</td>
+        </tr>`;
+    }).join("");
+}
+
+function escapeHtml(s) {
+    if (s == null) return "";
+    return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function openEditModal(id) {
+    editingId = id || null;
+    const item = id ? rows.find(x => x.id === id) : null;
+    if (item && item.status === "PUBLISHED") {
+        alert("已发布的通知不可编辑，请使用查看。");
+        return;
+    }
+    document.getElementById("editModalTitle").textContent = id ? "编辑通知" : "发布通知";
+    document.getElementById("noticeTitle").value = item ? item.title : "";
+    document.getElementById("noticeType").value = item ? (item.type || "OTHER") : "ACTIVITY";
+    document.getElementById("noticeContent").value = item ? item.content : "";
+    document.getElementById("editModal").classList.add("show");
+}
+
+function closeEditModal() {
+    document.getElementById("editModal").classList.remove("show");
+    editingId = null;
+}
+
+function closeEditOnOverlay(e) {
+    if (e.target.id === "editModal") closeEditModal();
+}
+
+function openViewModal(id) {
+    const item = rows.find(x => x.id === id);
+    if (!item) return;
+    if (item.status !== "PUBLISHED") {
+        alert("草稿通知请使用编辑功能。");
+        return;
+    }
+    document.getElementById("viewTitle").textContent = item.title;
+    document.getElementById("viewType").textContent = TYPE_LABELS[item.type] || TYPE_LABELS.OTHER;
+    document.getElementById("viewTime").textContent = item.publishTime || "-";
+    document.getElementById("viewContent").textContent = item.content || "";
+    document.getElementById("viewModal").classList.add("show");
+}
+
+function closeViewModal() {
+    document.getElementById("viewModal").classList.remove("show");
+}
+
+function closeViewOnOverlay(e) {
+    if (e.target.id === "viewModal") closeViewModal();
+}
+
+function validateForm() {
+    const title = document.getElementById("noticeTitle").value.trim();
+    const content = document.getElementById("noticeContent").value.trim();
+    if (!title) {
+        alert("请填写通知标题");
+        return null;
+    }
+    if (!content) {
+        alert("请填写通知内容");
+        return null;
+    }
+    return {
+        title,
+        type: document.getElementById("noticeType").value,
+        content
+    };
+}
+
+function saveNotice(targetStatus) {
+    const data = validateForm();
+    if (!data) return;
+
+    const now = formatTime(new Date());
+    if (editingId) {
+        const item = rows.find(x => x.id === editingId);
+        if (!item) return;
+        if (item.status === "PUBLISHED") {
+            alert("已发布的通知不可修改");
+            return;
+        }
+        item.title = data.title;
+        item.type = data.type;
+        item.content = data.content;
+        item.updatedAt = now;
+        if (targetStatus === "PUBLISHED") {
+            item.status = "PUBLISHED";
+            item.publishTime = now;
+        } else {
+            item.status = "DRAFT";
+            item.publishTime = null;
+        }
+    } else {
+        rows.unshift({
+            id: Date.now(),
+            title: data.title,
+            type: data.type,
+            content: data.content,
+            status: targetStatus,
+            publishTime: targetStatus === "PUBLISHED" ? now : null,
+            updatedAt: now
+        });
+    }
+    persist();
+    closeEditModal();
+    renderList();
+}
+
+function removeNotice(id) {
+    const item = rows.find(x => x.id === id);
+    if (!item) return;
+    if (item.status === "PUBLISHED") {
+        alert("已发布的通知不可删除");
+        return;
+    }
+    if (!confirm("确认删除该草稿通知？")) return;
+    rows = rows.filter(x => x.id !== id);
+    persist();
+    renderList();
+}
+</script>
+</body>
+</html>

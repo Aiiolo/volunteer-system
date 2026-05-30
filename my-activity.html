@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的活动 - 三江学院志愿者服务系统</title>
+<link rel="stylesheet" href="css/theme.css">
+<style>
+.container{width:min(1100px, calc(100% - 40px));margin:30px auto;background:white;border-radius:18px;padding:30px 34px;box-shadow:0 20px 50px rgba(217,33,33,.08)}
+.page-title{color:#d92121;margin-bottom:18px;font-size:26px}
+.tab-bar{display:flex;gap:14px;margin-bottom:24px}
+.tab{padding:10px 22px;border-radius:999px;cursor:pointer;background:#fff3f4;color:#7a1212;border:1px solid #f5c9cd;font-weight:700}
+.tab.active{background:#d92121;color:white;border-color:#d92121;box-shadow:0 10px 20px rgba(217,33,33,.18)}
+.activity-item{display:flex;justify-content:space-between;align-items:center;padding:20px 22px;border:1px solid #f3e3e5;border-radius:16px;margin-bottom:14px;background:linear-gradient(180deg,#fff,#fff9f9)}
+.activity-info h3{font-size:18px;color:#222;margin-bottom:8px}
+.activity-info p{font-size:14px;color:#666;line-height:1.7}
+.btn-group{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{padding:9px 16px;border:none;border-radius:999px;cursor:pointer;font-weight:700}
+.btn.sign{background:#d92121;color:white}
+.btn.sign.disabled,.btn.sign:disabled{background:#ccc;color:#fff;cursor:not-allowed}
+.btn.view{background:#fff;border:1px solid #ead3d6;color:#7a1212}
+.empty{text-align:center;color:#999;padding:34px}
+.activity-meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.pill{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:#fff1f2;color:#b91616;font-size:12px;font-weight:700}
+.pill.status-done{background:#f0f0f0;color:#666}
+.section-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.section-note{color:#999;font-size:13px}
+.btn-tip{display:inline-flex}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="section-head">
+        <h1 class="page-title">我的活动</h1>
+        <div class="section-note">报名后请在活动开始前完成签到，结束后记得签退</div>
+    </div>
+    <div class="tab-bar">
+        <div class="tab active" onclick="setTab('apply',this)">已报名</div>
+        <div class="tab" onclick="setTab('attend',this)">已参与</div>
+    </div>
+    <div id="list"><div class="empty">加载中...</div></div>
+</div>
+<script src="js/common.js"></script>
+<script>
+let tab = "apply";
+let applications = [];
+const CANCEL_LIMIT_MS = 30 * 60 * 1000;
+
+function normalizeResponse(data) {
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.content)) return data.content;
+    return [];
+}
+
+function isCancelled(a) {
+    return false;
+}
+
+function applyCancelledState() {
+    /* 取消状态以服务端为准 */
+}
+
+function parseDateTime(value) {
+    if (!value) return null;
+    const normalized = String(value).includes("T") ? String(value) : String(value).replace(" ", "T");
+    const d = new Date(normalized);
+    return isNaN(d.getTime()) ? null : d;
+}
+
+function getActivityTimes(a) {
+    return {
+        start: parseDateTime(a.startTime),
+        end: parseDateTime(a.endTime)
+    };
+}
+
+function getCancelState(a) {
+    const { start, end } = getActivityTimes(a);
+    const now = Date.now();
+    if (!start) return "enabled";
+    if (now >= start.getTime()) return "hidden";
+    if (end && now >= end.getTime()) return "hidden";
+    return now > start.getTime() - CANCEL_LIMIT_MS ? "disabled" : "enabled";
+}
+
+function renderCancelButton(a) {
+    const state = getCancelState(a);
+    if (state === "hidden") return "";
+    if (state === "disabled") {
+        return `<span class="btn-tip" title="活动开始前半小时内不可取消"><button class="btn sign disabled" disabled>取消报名</button></span>`;
+    }
+    return `<button class="btn sign" type="button" onclick="cancelApply(${a.id})">取消报名</button>`;
+}
+
+function goDetail(activityId) {
+    goActivityDetail(activityId);
+}
+
+async function enrichActivityTimes() {
+    try {
+        const page = await api("/api/v1/volunteer/activities?page=0&size=100");
+        const list = normalizeResponse(page);
+        const map = Object.fromEntries(list.map(x => [x.id, x]));
+        applications.forEach(a => {
+            const act = map[a.activityId];
+            if (!act) return;
+            if (!a.startTime) a.startTime = act.startTime;
+            if (!a.endTime) a.endTime = act.endTime;
+            a.activityStatus = resolveActivityDisplayStatus(act);
+        });
+    } catch (e) { /* ignore */ }
+}
+
+async function load() {
+    applications = normalizeResponse(await api("/api/v1/volunteer/activities/my"));
+    await enrichActivityTimes();
+    applyCancelledState();
+    render();
+}
+
+function setTab(t, el) {
+    tab = t;
+    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    el.classList.add("active");
+    render();
+}
+
+function activityEffectiveStatusForApp(a) {
+    const act = { status: a.activityStatus, startTime: a.startTime, endTime: a.endTime };
+    return activityStatusText(a.activityStatus || resolveActivityDisplayStatus(act), act);
+}
+
+function renderApplyList(box, list) {
+    if (!list.length) {
+        box.innerHTML = '<div class="empty">暂无已报名的活动</div>';
+        return;
+    }
+    box.innerHTML = list.map(a => `
+        <div class="activity-item">
+            <div class="activity-info">
+                <h3>${a.activityTitle || "活动 #" + (a.activityId || "-")}</h3>
+                <div class="activity-meta">
+                    <span class="pill">${applicationStatusText(a.status, a)}</span>
+                    <span class="pill">${activityEffectiveStatusForApp(a)}</span>
+                </div>
+                <p>报名时间：${fmt(a.applyTime)} ｜ 活动：${fmt(a.startTime)} 至 ${fmt(a.endTime)}</p>
+            </div>
+            <div class="btn-group">
+                ${!isCancelled(a) && a.status === "PENDING" ? renderCancelButton(a) : ""}
+                ${renderVolunteerAttendanceActions(a)}
+                <button class="btn view" type="button" onclick="goDetail(${a.activityId})">详情</button>
+            </div>
+        </div>
+    `).join("");
+}
+
+function renderAttendList(box, list) {
+    if (!list.length) {
+        box.innerHTML = '<div class="empty">暂无已参与的活动</div>';
+        return;
+    }
+    box.innerHTML = list.map(a => `
+        <div class="activity-item">
+            <div class="activity-info">
+                <h3>${a.activityTitle || "活动 #" + (a.activityId || "-")}</h3>
+                <div class="activity-meta">
+                    <span class="pill">${volunteerAttendanceLabel(a)}</span>
+                    ${a.checkInTime ? `<span class="pill">签到 ${fmt(a.checkInTime)}</span>` : ""}
+                    ${a.checkOutTime ? `<span class="pill">签退 ${fmt(a.checkOutTime)}</span>` : ""}
+                </div>
+                <p>活动开始：${fmt(a.startTime)} ｜ 结束：${fmt(a.endTime)}</p>
+            </div>
+            <div class="btn-group">
+                ${renderVolunteerAttendanceActions(a)}
+                <button class="btn view" type="button" onclick="goDetail(${a.activityId})">详情</button>
+            </div>
+        </div>
+    `).join("");
+}
+
+function hasParticipated(a) {
+    const s = a.status;
+    return !!(a.checkInTime || a.checkOutTime || s === "COMPLETED"
+        || s === "WAIT_CHECK_OUT" || s === "WAIT_CHECK_OUT_CONFIRM");
+}
+
+function render() {
+    const box = document.getElementById("list");
+    if (tab === "apply") {
+        const registered = applications.filter(a =>
+            !isCancelled(a) && !hasParticipated(a)
+        );
+        renderApplyList(box, registered);
+    } else {
+        const attended = applications.filter(a => !isCancelled(a) && hasParticipated(a));
+        renderAttendList(box, attended);
+    }
+}
+
+async function volunteerCheckIn(activityId) {
+    if (!confirm("确定提交签到申请？提交后需等待活动负责人确认。")) return;
+    try {
+        await api("/api/v1/volunteer/attendance/check-in", {
+            method: "POST",
+            body: JSON.stringify({ activityId })
+        });
+        alert("已提交签到申请");
+        await load();
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+async function volunteerCheckOut(activityId) {
+    if (!confirm("确定提交签退申请？提交后需等待活动负责人确认。")) return;
+    try {
+        await api("/api/v1/volunteer/attendance/check-out", {
+            method: "POST",
+            body: JSON.stringify({ activityId })
+        });
+        alert("已提交签退申请");
+        await load();
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+async function cancelApply(id) {
+    const app = applications.find(a => a.id === id);
+    if (!app || getCancelState(app) !== "enabled") return;
+    if (!confirm("确定取消报名？")) return;
+    try {
+        await api(`/api/v1/volunteer/applications/${id}`, { method: "DELETE" });
+        alert("已取消报名");
+        await load();
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    if (!requireLogin("VOLUNTEER")) return;
+    try {
+        await load();
+    } catch (e) {
+        document.getElementById("list").innerHTML = `<div class="empty">${e.message}</div>`;
+    }
+});
+</script>
+</body>
+</html>

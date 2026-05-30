@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三江学院志愿者服务系统 - 志愿者首页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        html,body {
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        body {
+            background: #f8f8f8;
+            padding-top: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            z-index: 1000;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .header-left .avatar {
+            width: 50px;
+            height: 50px;
+            background: #e0e0e0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 20px;
+        }
+        .header-left h1 {
+            font-size: 32px;
+            color: #222;
+        }
+        .header-left .tag {
+            background: #d92121;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .user-info {
+            font-size: 16px;
+        }
+        .user-info .role {
+            color: #d92121;
+            font-weight: bold;
+        }
+        .logout-btn {
+            background: #d92121;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .slogan {
+            text-align: right;
+            color: #d92121;
+            font-size: 18px;
+            margin-top: 5px;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .search-select {
+            border: 1px solid #d92121;
+            border-radius: 20px 0 0 20px;
+            padding: 8px 15px;
+            color: #d92121;
+            background: white;
+        }
+        .search-input {
+            border: 1px solid #d92121;
+            border-left: none;
+            padding: 8px 15px;
+            width: 250px;
+        }
+        .search-btn {
+            background: #d92121;
+            color: white;
+            border: none;
+            padding: 9px 15px;
+            border-radius: 0 20px 20px 0;
+            cursor: pointer;
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 90px;
+            left: 0;
+            width: 100%;
+            background: #d92121;
+            display: flex;
+            justify-content: center;
+            z-index: 999;
+        }
+        .nav-item {
+            color: white;
+            padding: 15px 30px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .nav-item a {
+            color: white;
+        }
+        .nav-item.active {
+            background: white;
+        }
+        .nav-item.active a {
+            color: #d92121;
+        }
+
+        .news-section {
+            width: min(1200px, calc(100% - 60px));
+            margin: 56px auto;
+            padding: 0;
+            background: #f8f8f8;
+            position: relative;
+            z-index: 2;
+        }
+        .section-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 30px;
+            padding-left: 15px;
+            border-left: 4px solid #d92121;
+        }
+        .news-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+        .news-card {
+            display: block;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+        .news-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        .news-content {
+            padding: 20px;
+        }
+        .news-title {
+            font-size: 18px;
+            color: #222;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        .news-date {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .news-desc {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        @media (max-width: 768px) {
+            .news-list {
+                grid-template-columns: 1fr;
+            }
+            .search-input {
+                width: 150px;
+            }
+            .nav-item {
+                padding: 12px 15px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-header">
+    <div class="header-left">
+        <div class="avatar">👥</div>
+        <div>
+            <h1>三江学院志愿者服务系统 <span class="tag">江苏</span></h1>
+            <p style="color:#666;">江苏高校志愿服务平台</p>
+        </div>
+    </div>
+    <div class="header-right">
+        <div>
+            <div class="user-info"><span class="greeting" id="greetingText">晚上好，</span><span class="tag user-badge" id="userName">志愿者：加载中</span> <button class="logout-btn" onclick="logout()">退出登录</button></div>
+            <div class="slogan">奉献 友爱 互助 进步</div>
+        </div>
+        <div class="search-bar">
+            <div class="search-select">新闻文章 ▼</div>
+            <input type="text" class="search-input" placeholder="请输入关键词...">
+            <button class="search-btn">🔍</button>
+        </div>
+    </div>
+</div>
+
+<div class="nav-bar">
+    <div class="nav-item active"><a href="volunteer.html">平台首页</a></div>
+    <div class="nav-item"><a href="volunteer-about.html">关于我们</a></div>
+    <div class="nav-item"><a href="volunteer-stars.html">服务之星</a></div>
+    <div class="nav-item"><a href="volunteer-activity.html">活动报名</a></div>
+    <div class="nav-item"><a href="volunteer-message.html">我的消息</a></div>
+    <div class="nav-item"><a href="volunteer-forum.html">社区论坛</a></div>
+    <div class="nav-item"><a href="volunteer-profile.html">个人中心</a></div>
+</div>
+
+<!-- 全屏视频 - 铺满整个屏幕 -->
+<div style="position: relative; width: 100%; height: 100vh; overflow: hidden; background: #000;">
+    <video autoplay loop playsinline controls style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+        <source src="images/index-video.mp4" type="video/mp4">
+        您的浏览器不支持视频播放。
+    </video>
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); pointer-events: none; z-index: 1;"></div>
+</div>
+
+<div class="news-section">
+    <h2 class="section-title">最新志愿活动</h2>
+    <div class="news-list">
+        <a class="news-card" href="volunteer-activity-detail.html?id=1">
+            <img src="images/index2.png" alt="志愿活动" loading="lazy">
+            <div class="news-content">
+                <h3 class="news-title">校园文明劝导志愿服务</h3>
+                <p class="news-date">2025-05-18</p>
+                <p class="news-desc">维护校园秩序，引导文明行为，共创美好校园环境。</p>
+            </div>
+        </a>
+        <a class="news-card" href="volunteer-activity-detail.html?id=2">
+            <img src="images/index1.jpg" alt="志愿活动" loading="lazy">
+            <div class="news-content">
+                <h3 class="news-title">敬老院爱心陪伴活动</h3>
+                <p class="news-date">2025-05-18</p>
+                <p class="news-desc">走进敬老院，陪伴老人聊天、读报，传递温暖与关爱。</p>
+            </div>
+        </a>
+        <a class="news-card" href="volunteer-activity-detail.html?id=3">
+            <img src="images/index3.jpg" alt="志愿活动" loading="lazy">
+            <div class="news-content">
+                <h3 class="news-title">校园环保清洁行动</h3>
+                <p class="news-date">2025-05-18</p>
+                <p class="news-desc">清洁校园卫生死角，宣传环保理念，共建绿色美丽校园。</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+<script src="js/common.js"></script>
+<script>
+    const username = localStorage.getItem("username") || "volunteer";
+    const hour = new Date().getHours();
+    let greeting = "下午好";
+    if (hour < 12) greeting = "早上好";
+    else if (hour < 18) greeting = "下午好";
+    else greeting = "晚上好";
+    const greetingEl = document.getElementById("greetingText");
+    const userNameEl = document.getElementById("userName");
+    if (greetingEl) greetingEl.innerText = greeting + "，";
+    if (userNameEl) userNameEl.innerHTML = `志愿者：${username}`;
+
+    function logout() {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "role-select.html";
+    }
+</script>
+</body>
+</html>

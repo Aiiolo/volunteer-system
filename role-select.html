@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>选择登录身份</title>
+    <link rel="stylesheet" href="css/theme.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            background-color: #FFF0F3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px;
+        }
+        .page-shell {
+            width: min(1120px, 100%);
+            text-align: center;
+        }
+        .page-title {
+            font-size: 42px;
+            color: #98111a;
+            margin-bottom: 12px;
+        }
+        .page-subtitle {
+            color: #6b7280;
+            margin-bottom: 34px;
+        }
+        .role-container {
+            display: flex;
+            gap: 26px;
+            justify-content: center;
+        }
+        .role-card {
+            width: 310px;
+            height: 380px;
+            border-radius: 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            position: relative;
+            overflow: hidden;
+            color: white;
+        }
+        .role-card::before {
+            content: "";
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            right: -62px;
+            top: -48px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.18);
+        }
+        .role-card::after {
+            content: "进入系统";
+            position: absolute;
+            bottom: 34px;
+            padding: 10px 22px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.22);
+            backdrop-filter: blur(8px);
+            font-size: 14px;
+        }
+        .role-card:hover {
+            transform: translateY(-8px) scale(1.01);
+        }
+
+        .role-card.volunteer {
+            background: linear-gradient(135deg, #ff6b6b, #d92121);
+        }
+
+        .role-card.admin {
+            background: linear-gradient(135deg, #b3121f, #e23b3b);
+        }
+
+        .role-card.active {
+            background: linear-gradient(135deg, #ef6f55, #c81723);
+        }
+
+        .role-icon {
+            font-size: 60px;
+            margin-bottom: 25px;
+        }
+        /* 统一标题和描述字体大小 */
+        .role-title {
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .role-desc {
+            font-size: 16px;
+            text-align: center;
+            padding: 0 20px;
+            opacity: 0.9;
+        }
+        @media (max-width: 960px) {
+            .role-container { flex-direction: column; align-items: center; }
+            .role-card { width: min(360px, 100%); height: 260px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="page-shell">
+        <h1 class="page-title">请选择登录身份</h1>
+        <p class="page-subtitle">面向志愿者、管理员与活动负责人的统一服务入口</p>
+    <div class="role-container">
+        <div class="role-card volunteer" onclick="selectRole('volunteer')">
+            <div class="role-icon">💖</div>
+            <div class="role-title">志愿者</div>
+            <div class="role-desc">服务他人，传递温暖</div>
+        </div>
+        <div class="role-card admin" onclick="selectRole('admin')">
+            <div class="role-icon">👑</div>
+            <div class="role-title">管理员</div>
+            <div class="role-desc">统筹协调，高效管理</div>
+        </div>
+        <div class="role-card active" onclick="selectRole('active')">
+            <div class="role-icon">🚩</div>
+            <div class="role-title">活动负责人</div>
+            <div class="role-desc">策划执行，引领活动</div>
+        </div>
+    </div>
+    </main>
+
+    <script>
+        function selectRole(role) {
+            localStorage.setItem("userRole", role);
+            window.location.href = "login.html";
+        }
+    </script>
+</body>
+</html>

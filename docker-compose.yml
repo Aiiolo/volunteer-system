@@ -1,0 +1,35 @@
+services:
+  redis:
+    image: docker.m.daocloud.io/library/redis:7-alpine
+    container_name: volunteer-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: volunteer-backend
+    restart: unless-stopped
+    ports:
+      - "28888:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/volunteer_system?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      JWT_SECRET: docker-volunteer-system-secret-at-least-32-bytes
+      TZ: Asia/Shanghai
+
+volumes:
+  redis-data:

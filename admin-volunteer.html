@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>人员管理</title>
+<link rel="stylesheet" href="css/theme.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft Yahei",sans-serif}
+body{background:#f8f8f8;padding-top:160px}
+a{text-decoration:none;color:inherit}
+
+.top-header{
+    position:fixed;top:0;left:0;width:100%;background:#fff;
+    padding:15px 30px;display:flex;justify-content:space-between;align-items:center;
+    border-bottom:1px solid #eee;z-index:999
+}
+.header-left{display:flex;align-items:center;gap:15px}
+.avatar{width:50px;height:50px;background:#e0e0e0;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.header-left h1{font-size:32px}
+.tag,.logout-btn,.search-btn,.btn-save{background:#d92121;color:#fff}
+.tag{padding:5px 10px;border-radius:20px;font-size:14px}
+.header-right,.search-bar{display:flex;align-items:center;gap:20px}
+.role{color:#d92121;font-weight:bold}
+.logout-btn{border:none;padding:8px 15px;border-radius:20px;cursor:pointer}
+.slogan{text-align:right;color:#d92121;font-size:18px;margin-top:5px}
+.search-bar{gap:10px}
+.search-select{border:1px solid #d92121;border-radius:20px 0 0 20px;padding:8px 15px;color:#d92121}
+.search-input{border:1px solid #d92121;border-left:none;padding:8px 15px;width:250px}
+.search-btn{border:none;padding:9px 15px;border-radius:0 20px 20px 0;cursor:pointer}
+
+.nav-bar{
+    position:fixed;top:90px;left:0;width:100%;background:#d92121;
+    display:flex;justify-content:center;z-index:999
+}
+.nav-item{position:relative;color:#fff;cursor:pointer}
+.nav-item>a,.nav-title{display:block;color:inherit;padding:15px 20px}
+.nav-item.active,.nav-item:hover{background:white;color:#d92121}
+.dropdown-menu{
+    display:none;position:absolute;top:100%;left:0;min-width:130px;
+    background:#b91616;box-shadow:0 6px 16px rgba(0,0,0,.18)
+}
+.dropdown-menu a{display:block;color:white;padding:12px 16px;white-space:nowrap}
+.dropdown-menu a:hover,.dropdown-menu a.active{background:white;color:#d92121}
+.nav-item:hover .dropdown-menu{display:block}
+
+.main-content{
+    max-width:1200px;margin:50px auto;padding:40px;
+    background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.05)
+}
+.page-title{font-size:26px;margin-bottom:28px;padding-left:15px;border-left:4px solid #d92121}
+.module{margin-bottom:40px}
+.module:last-child{margin-bottom:0}
+.module-title{font-size:20px;margin-bottom:16px;padding-left:12px;border-left:3px solid #d92121;color:#333}
+.module-toolbar{margin-bottom:16px}
+.add-btn{background:#2d8cf0;color:#fff;border:none;padding:10px 20px;border-radius:4px;cursor:pointer}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #eee;padding:12px;text-align:center}
+th{background:#f5f5f5}
+.btn-edit{background:#2d8cf0;color:#fff;border:0;padding:5px 10px;border-radius:3px;margin:2px;cursor:pointer}
+.btn-agree{background:#19be6b;color:#fff;border:0;padding:5px 10px;border-radius:3px;margin:2px;cursor:pointer}
+.btn-toggle{background:#ff9900;color:#fff;border:0;padding:5px 10px;border-radius:3px;margin:2px;cursor:pointer}
+.btn-del{background:#f53f3f;color:#fff;border:0;padding:5px 10px;border-radius:3px;margin:2px;cursor:pointer}
+
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1000}
+.panel{width:650px;background:white;margin:80px auto;padding:25px;border-radius:8px;max-height:calc(100vh - 120px);overflow-y:auto}
+.panel h2{font-size:22px;margin-bottom:20px;padding-left:12px;border-left:4px solid #d92121}
+.panel .std-form-2col{margin-bottom:4px}
+.btn-save{border:0;padding:9px 18px;border-radius:4px;margin-top:15px;cursor:pointer}
+.btn-cancel{padding:9px 18px;border:0;border-radius:4px;margin-left:8px;cursor:pointer;background:#f0f0f0}
+</style>
+</head>
+<body>
+
+<div class="top-header">
+<div class="header-left">
+<div class="avatar">👤</div>
+<div><h1>三江学院志愿者服务系统 <span class="tag">管理员</span></h1>
+<p style="color:#666;">后台管理运营平台</p></div>
+</div>
+<div class="header-right">
+<div><div class="user-info">您好，<span class="role">系统管理员</span> <button class="logout-btn" onclick="logout()">退出登录</button></div>
+<div class="slogan">规范管理 服务志愿</div></div>
+<div class="search-bar">
+<div class="search-select">全部数据</div>
+<input class="search-input" id="keyword" placeholder="输入关键词查询">
+<button class="search-btn" onclick="renderAll()">🔍</button>
+</div>
+</div>
+</div>
+
+<div class="nav-bar">
+<div class="nav-item"><a href="admin.html">首页</a></div>
+<div class="nav-item"><a href="admin-about.html">平台介绍</a></div>
+<div class="nav-item active">
+<span class="nav-title">用户与活动</span>
+<div class="dropdown-menu">
+<a class="active" href="admin-volunteer.html">人员管理</a>
+<a href="admin-activity.html">活动管理</a>
+<a href="admin-stars.html">志愿之星</a>
+</div>
+</div>
+<div class="nav-item"><a href="admin-message.html">消息通知</a></div>
+<div class="nav-item"><a href="admin-statistics.html">数据统计</a></div>
+<div class="nav-item"><a href="admin-forum.html">社区论坛</a></div>
+<div class="nav-item"><a href="admin-profile.html">个人中心</a></div>
+</div>
+
+<div class="main-content">
+<h2 class="page-title">人员管理</h2>
+
+<section class="module" id="volunteerModule">
+<h3 class="module-title">志愿者管理</h3>
+<div class="module-toolbar">
+<button class="add-btn" type="button" onclick="openVolunteerModal()">新增志愿者</button>
+</div>
+<table>
+<thead>
+<tr>
+<th>姓名</th>
+<th>学号</th>
+<th>服务时长</th>
+<th>技能</th>
+<th>状态</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody id="volunteerTbody">
+<tr><td colspan="6">加载中...</td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="module" id="organizerModule">
+<h3 class="module-title">活动负责人管理</h3>
+<div class="module-toolbar">
+<button class="add-btn" type="button" id="addOrganizerBtn" style="display:none" onclick="openOrganizerModal()">新增活动负责人</button>
+</div>
+<table>
+<thead>
+<tr>
+<th>姓名</th>
+<th>账号</th>
+<th>负责活动数目</th>
+<th>状态</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody id="organizerTbody">
+<tr><td colspan="5">加载中...</td></tr>
+</tbody>
+</table>
+</section>
+</div>
+
+<div class="modal" id="volunteerModal">
+<div class="panel">
+<h2 id="volunteerModalTitle">志愿者信息</h2>
+<form class="std-form-2col" id="volunteerForm" onsubmit="return false;">
+<div class="form-row">
+<label class="form-label" for="vUsername">学号</label>
+<div class="form-field">
+<input id="vUsername" type="text" placeholder="学号">
+</div>
+</div>
+<div class="form-row">
+<label class="form-label" for="vRealName">姓名</label>
+<div class="form-field">
+<input id="vRealName" type="text" placeholder="姓名">
+</div>
+</div>
+<div class="form-row">
+<label class="form-label" for="vPhone">手机号</label>
+<div class="form-field">
+<input id="vPhone" type="text" placeholder="手机号">
+</div>
+</div>
+<div class="form-row">
+<label class="form-label" for="vAge">年龄</label>
+<div class="form-field">
+<input id="vAge" type="number" placeholder="年龄">
+</div>
+</div>
+<div class="form-row span-2">
+<label class="form-label" for="vSkills">技能</label>
+<div class="form-field">
+<input id="vSkills" type="text" placeholder="技能特长">
+</div>
+</div>
+<div class="form-row span-2 align-top">
+<label class="form-label" for="vPreferences">意向服务领域</label>
+<div class="form-field">
+<textarea id="vPreferences" placeholder="服务偏好"></textarea>
+</div>
+</div>
+<div class="form-row span-2">
+<label class="form-label" for="vStatus">状态</label>
+<div class="form-field">
+<select id="vStatus">
+<option value="PENDING">待审核</option>
+<option value="ACTIVE">正常</option>
+<option value="DISABLED">禁用</option>
+</select>
+</div>
+</div>
+</form>
+<button class="btn-save" type="button" onclick="saveVolunteer()">保存</button>
+<button class="btn-cancel" type="button" onclick="closeVolunteerModal()">取消</button>
+</div>
+</div>
+
+<div class="modal" id="organizerModal">
+<div class="panel">
+<h2 id="organizerModalTitle">活动负责人信息</h2>
+<form class="std-form-2col" id="organizerForm" onsubmit="return false;">
+<div class="form-row">
+<label class="form-label" for="oUsername">账号</label>
+<div class="form-field">
+<input id="oUsername" type="text" placeholder="账号">
+</div>
+</div>
+<div class="form-row">
+<label class="form-label" for="oRealName">姓名</label>
+<div class="form-field">
+<input id="oRealName" type="text" placeholder="姓名">
+</div>
+</div>
+<div class="form-row">
+<label class="form-label" for="oPhone">手机号</label>
+<div class="form-field">
+<input id="oPhone" type="text" placeholder="手机号">
+</div>
+</div>
+<div class="form-row">
+<label class="form-label" for="oDepartment">所属部门</label>
+<div class="form-field">
+<input id="oDepartment" type="text" placeholder="所属部门">
+</div>
+</div>
+<div class="form-row span-2">
+<label class="form-label" for="oStatus">状态</label>
+<div class="form-field">
+<select id="oStatus">
+<option value="ACTIVE">正常</option>
+<option value="DISABLED">禁用</option>
+</select>
+</div>
+</div>
+</form>
+<button class="btn-save" type="button" onclick="saveOrganizer()">保存</button>
+<button class="btn-cancel" type="button" onclick="closeOrganizerModal()">取消</button>
+</div>
+</div>
+
+<script src="js/common.js"></script>
+<script>
+let volunteers = [];
+let organizers = [];
+let editingVolunteerId = null;
+let editingOrganizerId = null;
+const isAdmin = () => currentRole() === "ADMIN";
+
+document.addEventListener("DOMContentLoaded", async () => {
+    if (!requireLogin("ADMIN")) return;
+    if (isAdmin()) {
+        document.getElementById("addOrganizerBtn").style.display = "";
+    }
+    const searchInput = document.getElementById("keyword");
+    if (searchInput) {
+        searchInput.addEventListener("keydown", e => {
+            if (e.key === "Enter") renderAll();
+        });
+    }
+    await loadAll();
+});
+
+function keywordValue() {
+    const el = document.getElementById("keyword");
+    return el ? el.value.trim().toLowerCase() : "";
+}
+
+async function loadAll() {
+    try {
+        const [vList, oList] = await Promise.all([
+            api("/api/v1/admin/volunteers"),
+            api("/api/v1/admin/organizers")
+        ]);
+        volunteers = vList || [];
+        organizers = oList || [];
+        renderAll();
+    } catch (e) {
+        document.getElementById("volunteerTbody").innerHTML = `<tr><td colspan="6">加载失败: ${e.message}</td></tr>`;
+        document.getElementById("organizerTbody").innerHTML = `<tr><td colspan="5">加载失败: ${e.message}</td></tr>`;
+    }
+}
+
+function renderAll() {
+    renderVolunteers();
+    renderOrganizers();
+}
+
+function renderVolunteers() {
+    const kw = keywordValue();
+    const list = volunteers.filter(v => !kw ||
+        (v.realName || "").toLowerCase().includes(kw) ||
+        (v.username || "").toLowerCase().includes(kw) ||
+        (v.skills || "").toLowerCase().includes(kw)
+    );
+    const tbody = document.getElementById("volunteerTbody");
+    tbody.innerHTML = list.length ? list.map(v => `
+    <tr>
+        <td>${escapeHtml(v.realName || "-")}</td>
+        <td>${escapeHtml(v.username || "-")}</td>
+        <td>${formatHours(v.totalHours)}</td>
+        <td>${escapeHtml(v.skills || "-")}</td>
+        <td>${statusText(v.status)}</td>
+        <td>${volunteerActions(v)}</td>
+    </tr>
+    `).join("") : '<tr><td colspan="6">暂无志愿者数据</td></tr>';
+}
+
+function renderOrganizers() {
+    const kw = keywordValue();
+    const list = organizers.filter(o => !kw ||
+        (o.realName || "").toLowerCase().includes(kw) ||
+        (o.username || "").toLowerCase().includes(kw) ||
+        (o.department || "").toLowerCase().includes(kw)
+    );
+    const tbody = document.getElementById("organizerTbody");
+    tbody.innerHTML = list.length ? list.map(o => `
+    <tr>
+        <td>${escapeHtml(o.realName || "-")}</td>
+        <td>${escapeHtml(o.username || "-")}</td>
+        <td>${o.activityCount ?? 0}</td>
+        <td>${organizerStatusText(o.status)}</td>
+        <td>${organizerActions(o)}</td>
+    </tr>
+    `).join("") : '<tr><td colspan="5">暂无活动负责人数据</td></tr>';
+}
+
+function volunteerActions(v) {
+    const id = v.userId;
+    if (v.status === "PENDING") {
+        return `
+            <button class="btn-agree" onclick="approveVolunteer(${id})">同意</button>
+            <button class="btn-del" onclick="deleteVolunteer(${id})">删除</button>`;
+    }
+    if (v.status === "ACTIVE") {
+        return `
+            <button class="btn-edit" onclick="openVolunteerModal(${id})">编辑</button>
+            <button class="btn-toggle" onclick="toggleVolunteer(${id}, 'DISABLED')">禁用</button>
+            <button class="btn-del" onclick="deleteVolunteer(${id})">删除</button>`;
+    }
+    return `
+        <button class="btn-edit" onclick="openVolunteerModal(${id})">编辑</button>
+        <button class="btn-toggle" onclick="toggleVolunteer(${id}, 'ACTIVE')">启用</button>
+        <button class="btn-del" onclick="deleteVolunteer(${id})">删除</button>`;
+}
+
+function organizerActions(o) {
+    const id = o.userId;
+    if (o.status === "ACTIVE") {
+        return `
+            <button class="btn-edit" onclick="openOrganizerModal(${id})">编辑</button>
+            <button class="btn-toggle" onclick="toggleOrganizer(${id}, 'DISABLED')">禁用</button>
+            <button class="btn-del" onclick="deleteOrganizer(${id})">删除</button>`;
+    }
+    return `
+        <button class="btn-edit" onclick="openOrganizerModal(${id})">编辑</button>
+        <button class="btn-toggle" onclick="toggleOrganizer(${id}, 'ACTIVE')">启用</button>
+        <button class="btn-del" onclick="deleteOrganizer(${id})">删除</button>`;
+}
+
+function openVolunteerModal(id) {
+    editingVolunteerId = id || null;
+    const v = volunteers.find(x => x.userId === id) || {};
+    document.getElementById("volunteerModalTitle").textContent = id ? "编辑志愿者" : "新增志愿者";
+    document.getElementById("vUsername").value = v.username || "";
+    document.getElementById("vRealName").value = v.realName || "";
+    document.getElementById("vPhone").value = v.phone || "";
+    document.getElementById("vAge").value = v.age ?? "";
+    document.getElementById("vSkills").value = v.skills || "";
+    document.getElementById("vPreferences").value = v.preferences || "";
+    document.getElementById("vStatus").value = v.status || (id ? "ACTIVE" : "ACTIVE");
+    document.getElementById("volunteerModal").style.display = "block";
+}
+
+function closeVolunteerModal() {
+    document.getElementById("volunteerModal").style.display = "none";
+}
+
+async function saveVolunteer() {
+    const username = document.getElementById("vUsername").value.trim();
+    const realName = document.getElementById("vRealName").value.trim();
+    if (!username || !realName) {
+        alert("学号、姓名不能为空");
+        return;
+    }
+    const body = {
+        username,
+        realName,
+        phone: document.getElementById("vPhone").value.trim(),
+        age: Number(document.getElementById("vAge").value) || null,
+        skills: document.getElementById("vSkills").value.trim(),
+        preferences: document.getElementById("vPreferences").value.trim(),
+        status: document.getElementById("vStatus").value
+    };
+    try {
+        if (editingVolunteerId) {
+            await api(`/api/v1/admin/volunteers/${editingVolunteerId}`, { method: "PUT", body: JSON.stringify(body) });
+        } else {
+            await api("/api/v1/admin/volunteers", { method: "POST", body: JSON.stringify(body) });
+        }
+        closeVolunteerModal();
+        await loadAll();
+        alert("保存成功");
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+async function approveVolunteer(userId) {
+    if (!confirm("确认同意该志愿者注册申请？")) return;
+    try {
+        await api("/api/v1/admin/volunteers/audit", {
+            method: "POST",
+            body: JSON.stringify({ userId, status: "ACTIVE" })
+        });
+        await loadAll();
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+async function toggleVolunteer(userId, status) {
+    const label = status === "ACTIVE" ? "启用" : "禁用";
+    if (!confirm(`确认${label}该志愿者？`)) return;
+    try {
+        await api("/api/v1/admin/volunteers/audit", {
+            method: "POST",
+            body: JSON.stringify({ userId, status })
+        });
+        await loadAll();
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+async function deleteVolunteer(userId) {
+    if (!confirm("确认删除该志愿者？删除后不可恢复。")) return;
+    try {
+        await api(`/api/v1/admin/volunteers/${userId}`, { method: "DELETE" });
+        await loadAll();
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+function openOrganizerModal(id) {
+    editingOrganizerId = id || null;
+    const o = organizers.find(x => x.userId === id) || {};
+    document.getElementById("organizerModalTitle").textContent = id ? "编辑活动负责人" : "新增活动负责人";
+    document.getElementById("oRealName").value = o.realName || "";
+    document.getElementById("oUsername").value = o.username || "";
+    document.getElementById("oPhone").value = o.phone || "";
+    document.getElementById("oDepartment").value = o.department || "";
+    document.getElementById("oStatus").value = o.status === "DISABLED" ? "DISABLED" : "ACTIVE";
+    document.getElementById("organizerModal").style.display = "block";
+}
+
+function closeOrganizerModal() {
+    document.getElementById("organizerModal").style.display = "none";
+}
+
+async function saveOrganizer() {
+    const username = document.getElementById("oUsername").value.trim();
+    const realName = document.getElementById("oRealName").value.trim();
+    if (!username || !realName) {
+        alert("账号、姓名不能为空");
+        return;
+    }
+    const body = {
+        username,
+        realName,
+        phone: document.getElementById("oPhone").value.trim(),
+        department: document.getElementById("oDepartment").value.trim(),
+        status: document.getElementById("oStatus").value
+    };
+    try {
+        if (editingOrganizerId) {
+            await api(`/api/v1/admin/organizers/${editingOrganizerId}`, { method: "PUT", body: JSON.stringify(body) });
+        } else {
+            await api("/api/v1/admin/organizers", { method: "POST", body: JSON.stringify(body) });
+        }
+        closeOrganizerModal();
+        await loadAll();
+        alert("保存成功");
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+async function toggleOrganizer(userId, status) {
+    const label = status === "ACTIVE" ? "启用" : "禁用";
+    if (!confirm(`确认${label}该活动负责人？`)) return;
+    try {
+        await api("/api/v1/admin/organizers/audit", {
+            method: "POST",
+            body: JSON.stringify({ userId, status })
+        });
+        await loadAll();
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+async function deleteOrganizer(userId) {
+    if (!confirm("确认删除该活动负责人？删除后不可恢复。")) return;
+    try {
+        await api(`/api/v1/admin/organizers/${userId}`, { method: "DELETE" });
+        await loadAll();
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+function statusText(s) {
+    return { PENDING: "待审核", ACTIVE: "正常", DISABLED: "禁用" }[s] || s;
+}
+
+function organizerStatusText(s) {
+    return { ACTIVE: "正常", DISABLED: "禁用", PENDING: "待审核" }[s] || s;
+}
+
+function formatHours(h) {
+    const n = Number(h);
+    if (Number.isNaN(n)) return "0h";
+    return `${n}h`;
+}
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function logout() {
+    localStorage.clear();
+    sessionStorage.clear();
+    location.href = "role-select.html";
+}
+</script>
+</body>
+</html>

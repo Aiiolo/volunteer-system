@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <link rel="stylesheet" href="css/theme.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #ffeef0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 28px;
+        }
+        .login-box {
+            display: flex;
+            width: min(920px, 100%);
+            min-height: 560px;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        .welcome-side {
+            width: 52%;
+            background: linear-gradient(135deg, #9d111b, #d92121 58%, #ff7a7a);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 70px 48px;
+            position: relative;
+            overflow: hidden;
+        }
+        .welcome-side::before,
+        .welcome-side::after {
+            content: "";
+            position: absolute;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50%;
+        }
+        .welcome-side::before {
+            width: 120px;
+            height: 120px;
+            top: 40px;
+            right: 20px;
+        }
+        .welcome-side::after {
+            width: 80px;
+            height: 80px;
+            bottom: 60px;
+            left: 30px;
+        }
+        .welcome-side h1 {
+            font-size: 42px;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+        .welcome-side h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: normal;
+        }
+        .welcome-side p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .form-side {
+            width: 48%;
+            padding: 64px 54px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .form-side h3 {
+            text-align: center;
+            font-size: 26px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .form-side .desc {
+            text-align: center;
+            color: #666;
+            font-size: 15px;
+            margin-bottom: 40px;
+        }
+        .input-item {
+            margin-bottom: 20px;
+        }
+        .input-item input {
+            width: 100%;
+            padding: 14px 20px;
+            border: none;
+            background: #f8f9fa;
+            border-radius: 30px;
+            font-size: 15px;
+            color: #333;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .input-row input {
+            flex: 1;
+        }
+        .captcha-box {
+            width: 120px;
+            height: 48px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #666;
+            cursor: pointer;
+            user-select: none;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #ff7a7a, #ff6b6b);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        #msg {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .register-link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            color: #666;
+        }
+        .register-link a {
+            color: #d92121;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .brand-pill {
+            width: fit-content;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.18);
+            margin-bottom: 24px;
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
+        }
+        .welcome-side h1,
+        .welcome-side h2,
+        .welcome-side p {
+            position: relative;
+            z-index: 1;
+        }
+        @media (max-width: 780px) {
+            .login-box { display: block; }
+            .welcome-side, .form-side { width: 100%; }
+            .welcome-side { padding: 42px 32px; }
+            .form-side { padding: 42px 30px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <div class="welcome-side">
+            <div class="brand-pill">Sanjiang Volunteer Service</div>
+            <h1>欢迎加入</h1>
+            <h2>三江学院志愿服务平台</h2>
+            <p>让我们一起传递爱心，温暖世界</p>
+        </div>
+        <div class="form-side">
+            <h3 id="titleText">志愿者登录</h3>
+            <p class="desc">请使用您的账号密码登录</p>
+            <div class="input-item">
+                <input type="text" id="username" placeholder="请输入手机号/账号">
+            </div>
+            <div class="input-item">
+                <input type="password" id="password" placeholder="请输入密码">
+            </div>
+            <div class="input-item input-row">
+                <input type="text" id="captcha" placeholder="请输入验证码">
+                <div class="captcha-box" id="captchaDisplay" title="点击刷新验证码"></div>
+            </div>
+            <button class="login-btn" id="loginBtn" onclick="login()">登录</button>
+            <div id="msg"></div>
+            <div class="register-link" id="registerLink">
+                还没有志愿者账号？<a href="register.html">立即注册</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:28888";
+        const role = localStorage.getItem("userRole") || "volunteer";
+        const roleConfig = {
+            volunteer: { title: "志愿者登录", home: "volunteer.html", backendRole: "VOLUNTEER" },
+            admin: { title: "管理员登录", home: "admin.html", backendRole: "ADMIN" },
+            active: { title: "活动负责人登录", home: "active.html", backendRole: "ORGANIZER" }
+        };
+
+        let currentCaptcha = "";
+
+        function generateCaptcha() {
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            let code = "";
+            for (let i = 0; i < 4; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        function refreshCaptcha() {
+            currentCaptcha = generateCaptcha();
+            document.getElementById("captchaDisplay").textContent = currentCaptcha;
+        }
+
+        window.onload = function() {
+            const current = roleConfig[role] || roleConfig.volunteer;
+            document.getElementById("titleText").innerText = current.title;
+            document.getElementById("registerLink").style.display = role === "volunteer" ? "block" : "none";
+            document.getElementById("username").addEventListener("keydown", enterLogin);
+            document.getElementById("password").addEventListener("keydown", enterLogin);
+            document.getElementById("captcha").addEventListener("keydown", enterLogin);
+            refreshCaptcha();
+            document.getElementById("captchaDisplay").addEventListener("click", refreshCaptcha);
+        };
+
+        function enterLogin(event) {
+            if (event.key === "Enter") login();
+        }
+
+        function setMsg(text, color) {
+            const msg = document.getElementById("msg");
+            msg.innerText = text;
+            msg.style.color = color || "#d92121";
+        }
+
+        async function login() {
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const captcha = document.getElementById("captcha").value.trim();
+            const btn = document.getElementById("loginBtn");
+            const current = roleConfig[role] || roleConfig.volunteer;
+
+            if (!username || !password) {
+                setMsg("请输入账号和密码");
+                return;
+            }
+            if (captcha.toLowerCase() !== currentCaptcha.toLowerCase()) {
+                setMsg("验证码错误");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "登录中...";
+            setMsg("正在登录，请稍候...", "#666");
+
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/volunteer/auth/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password })
+                });
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || "登录失败，请检查账号密码");
+                }
+                if (result.data.role !== current.backendRole) {
+                    throw new Error("当前账号角色与所选登录身份不一致");
+                }
+
+                localStorage.setItem("token", result.data.token);
+                localStorage.setItem("userId", result.data.userId);
+                localStorage.setItem("username", result.data.username);
+                localStorage.setItem("backendRole", result.data.role);
+                localStorage.removeItem("realName");
+
+                if (result.data.role === "VOLUNTEER") {
+                    try {
+                        const profileRes = await fetch(`${API_BASE}/api/v1/volunteer/profile`, {
+                            headers: { Authorization: `Bearer ${result.data.token}` }
+                        });
+                        const profileResult = await profileRes.json();
+                        if (profileRes.ok && profileResult.success && profileResult.data.realName) {
+                            localStorage.setItem("realName", profileResult.data.realName);
+                        }
+                    } catch (error) {
+                        /* 忽略，页面加载时会再次尝试获取 */
+                    }
+                } else {
+                    localStorage.setItem("realName", result.data.username);
+                }
+
+                setMsg("登录成功，正在跳转...", "#19be6b");
+                setTimeout(() => location.href = current.home, 500);
+            } catch (error) {
+                setMsg(error.message || "登录失败，请确认后端服务已启动");
+                btn.disabled = false;
+                btn.innerText = "登录";
+            }
+        }
+    </script>
+</body>
+</html>

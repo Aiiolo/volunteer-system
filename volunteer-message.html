@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的消息</title>
+    <link rel="stylesheet" href="css/theme.css">
+    <style>
+        * { box-sizing: border-box; font-family: "Microsoft YaHei", sans-serif; }
+        body { background: #f8f8f8; }
+        .main-content {
+            width: min(1000px, calc(100% - 40px));
+            margin: 50px auto;
+            background: #fff;
+            padding: 32px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        h2.page-title {
+            border-left: 4px solid #d92121;
+            padding-left: 12px;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .item {
+            border-bottom: 1px solid #eee;
+            padding: 16px 5px;
+        }
+        .item-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .title { font-weight: 700; color: #333; }
+        .type-tag {
+            font-size: 12px;
+            background: #fff1f2;
+            color: #b91616;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .content { margin-top: 8px; color: #555; line-height: 1.6; white-space: pre-wrap; }
+        .time { color: #999; font-size: 13px; margin-top: 8px; }
+        .empty { color: #999; padding: 18px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="main-content">
+    <h2 class="page-title">我的消息</h2>
+    <div id="list">加载中...</div>
+</div>
+
+<script src="js/common.js"></script>
+<script>
+const STORAGE_KEY = "admin_notice_list_v2";
+const TYPE_LABELS = {
+    ACTIVITY: "活动通知",
+    MAINTENANCE: "系统维护",
+    REMINDER: "温馨提醒",
+    OTHER: "其他"
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (!requireLogin("VOLUNTEER")) return;
+    renderMessages();
+});
+
+function loadPublished() {
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+        const v1 = localStorage.getItem("admin_notice_list_v1");
+        if (v1) {
+            try {
+                return JSON.parse(v1)
+                    .filter(x => !x.status || x.status === "PUBLISHED")
+                    .map(x => ({
+                        title: x.title,
+                        type: x.type || "OTHER",
+                        content: x.content,
+                        publishTime: x.publishTime || x.time
+                    }));
+            } catch (e) { /* ignore */ }
+        }
+        return [];
+    }
+    try {
+        return JSON.parse(raw)
+            .filter(x => x.status === "PUBLISHED")
+            .sort((a, b) => (b.publishTime || "").localeCompare(a.publishTime || ""));
+    } catch (e) {
+        return [];
+    }
+}
+
+function escapeHtml(s) {
+    if (s == null) return "";
+    return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function renderMessages() {
+    const rows = loadPublished();
+    const list = document.getElementById("list");
+    if (!rows.length) {
+        list.innerHTML = '<div class="empty">暂无通知消息</div>';
+        return;
+    }
+    list.innerHTML = rows.map(x => `
+        <div class="item">
+            <div class="item-head">
+                <span class="title">${escapeHtml(x.title)}</span>
+                <span class="type-tag">${TYPE_LABELS[x.type] || TYPE_LABELS.OTHER}</span>
+            </div>
+            <div class="content">${escapeHtml(x.content)}</div>
+            <div class="time">发布时间：${escapeHtml(x.publishTime || "-")}</div>
+        </div>
+    `).join("");
+}
+</script>
+</body>
+</html>

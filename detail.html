@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>活动详情</title>
+    <link rel="stylesheet" href="../css/theme.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", sans-serif; }
+        html, body { min-height: 100vh; }
+        body { background: #f8f8f8; padding-top: 160px; display: flex; flex-direction: column; }
+        a { text-decoration: none; color: inherit; }
+        .detail-wrap {
+            width: min(1000px, calc(100% - 60px));
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.06);
+            padding: 36px 40px 40px;
+            flex: 1 0 auto;
+        }
+        .detail-title { font-size: 28px; color: #222; margin-bottom: 16px; padding-left: 14px; border-left: 4px solid #d92121; }
+        .detail-meta { display: flex; flex-wrap: wrap; gap: 16px; color: #666; margin-bottom: 28px; font-size: 14px; }
+        .detail-meta span { background: #fff3f4; color: #7a1212; padding: 6px 14px; border-radius: 999px; }
+        .detail-section { margin-top: 24px; }
+        .detail-section h3 { font-size: 18px; color: #333; margin-bottom: 10px; padding-left: 10px; border-left: 3px solid #d92121; }
+        .detail-section p { line-height: 1.9; color: #555; white-space: pre-wrap; }
+        .detail-image-wrap {
+            width: 100%;
+            height: 220px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 8px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .detail-image-wrap img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            display: block;
+        }
+        .detail-actions { margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn-back { background: #eee; color: #333; border: 0; border-radius: 6px; padding: 10px 22px; cursor: pointer; font-size: 14px; }
+        .btn-apply { background: #d92121; color: #fff; border: 0; border-radius: 6px; padding: 10px 22px; cursor: pointer; font-size: 14px; }
+        .apply-hint { color: #999; font-size: 14px; padding: 10px 0; }
+        .empty { text-align: center; color: #999; padding: 60px 20px; }
+    </style>
+</head>
+<body>
+<div class="detail-wrap" id="detail">
+    <div class="empty">加载中...</div>
+</div>
+<script src="../js/common.js"></script>
+<script>
+const activityId = new URLSearchParams(location.search).get("id");
+let myApplication = null;
+
+function backUrl() {
+    const role = currentRole();
+    if (role === "ADMIN") return "../admin-activity.html";
+    if (role === "ORGANIZER") return "../active-activity.html";
+    return "../volunteer-activity.html";
+}
+
+function detailImageSrc(a) {
+    if (a.imageUrl) return mediaUrl(a.imageUrl);
+    return activityImageUrl(a.title, a.id);
+}
+
+function renderVolunteerApplyAction(a) {
+    if (currentRole() !== "VOLUNTEER") return "";
+    if (isActivityRegisterable(a) && !volunteerHasApplied(myApplication)) {
+        return `<button class="btn-apply" type="button" id="detailApplyBtn" onclick="applyFromDetail(${a.id})">我要报名</button>`;
+    }
+    return `<span class="apply-hint">${volunteerRegisterHint(a, myApplication)}</span>`;
+}
+
+async function applyFromDetail(id) {
+    if (!confirm("确定报名该活动？")) return;
+    const btn = document.getElementById("detailApplyBtn");
+    try {
+        if (btn) { btn.disabled = true; btn.textContent = "提交中..."; }
+        await api("/api/v1/volunteer/applications", {
+            method: "POST",
+            body: JSON.stringify({ activityId: id })
+        });
+        myApplication = { activityId: id, status: "PENDING" };
+        alert("报名成功，请等待审核");
+        const a = await api(`/api/v1/activities/${activityId}`);
+        renderDetail(a);
+    } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = "我要报名"; }
+        alert(e.message);
+    }
+}
+
+function renderDetail(a) {
+    document.getElementById("detail").innerHTML = `
+        <h1 class="detail-title">${a.title || "-"}</h1>
+        <div class="detail-meta">
+            <span>活动编号：${a.id}</span>
+            <span>状态：${activityStatusText(a.status, a)}</span>
+            <span>名额：${a.approvedCount != null ? a.approvedCount : (a.applicationCount || 0)}/${a.maxVolunteers}</span>
+            <span>开始：${fmt(a.startTime)}</span>
+            <span>结束：${fmt(a.endTime)}</span>
+        </div>
+        <div class="detail-section">
+            <h3>活动图片</h3>
+            <div class="detail-image-wrap">
+                <img src="${detailImageSrc(a)}" alt="活动图片" onerror="this.onerror=null;this.src='${lightweightImage((a.id || 0) + 20, 1000, 220)}'">
+            </div>
+        </div>
+        <div class="detail-section">
+            <h3>活动描述</h3>
+            <p>${a.description || "暂无"}</p>
+        </div>
+        <div class="detail-section">
+            <h3>活动要求</h3>
+            <p>${a.requirements || "暂无"}</p>
+        </div>
+        <div class="detail-actions">
+            <button class="btn-back" type="button" onclick="location.href='${backUrl()}'">返回列表</button>
+            ${renderVolunteerApplyAction(a)}
+        </div>`;
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const role = currentRole();
+    if (!token() || !role) {
+        alert("请先登录");
+        location.href = "../role-select.html";
+        return;
+    }
+    if (!activityId) {
+        document.getElementById("detail").innerHTML = '<div class="empty">缺少活动编号</div>';
+        return;
+    }
+    try {
+        const requests = [api(`/api/v1/activities/${activityId}`)];
+        if (role === "VOLUNTEER") {
+            requests.push(api("/api/v1/volunteer/applications/status").catch(() => []));
+        }
+        const [a, apps] = await Promise.all(requests);
+        if (role === "VOLUNTEER" && apps) {
+            const map = buildApplicationByActivityId(apps);
+            myApplication = map[Number(activityId)] || null;
+        }
+        renderDetail(a);
+    } catch (e) {
+        document.getElementById("detail").innerHTML = `<div class="empty">${e.message}</div>`;
+    }
+});
+</script>
+</body>
+</html>

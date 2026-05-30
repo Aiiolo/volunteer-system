@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社区论坛</title>
+    <link rel="stylesheet" href="css/theme.css">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif}
+        body{background:#f8f8f8;padding-top:160px;overflow-x:hidden}a{text-decoration:none;color:inherit}
+        .main-content{max-width:1200px;margin:50px auto;padding:40px;background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+        .main-content h2{font-size:26px;color:#333;margin-bottom:24px;padding-left:15px;border-left:4px solid #d92121}
+        .forum-head{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:18px;flex-wrap:wrap}
+        .forum-head-left{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+        .forum-head-left h2{margin-bottom:0}
+        .forum-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+        .forum-desc{color:#777;line-height:1.8;margin-bottom:20px}
+        .post-list{display:grid;gap:16px}
+        .post-item{border:1px solid #f0dadd;border-radius:18px;background:linear-gradient(180deg,#fff,#fffafa);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+        .post-item.is-top{border-color:#f3c56b;background:linear-gradient(180deg,#fffdf5,#fff8eb)}
+        .post-item.is-hidden{opacity:.72}
+        .post-item.is-deleted{opacity:.68;background:linear-gradient(180deg,#f7f7f7,#f3f3f3);border-color:#ddd}
+        .forum-badge.deleted{background:#ececec;color:#888}
+        .forum-manage-drop{position:relative}
+        .manage-drop-btn{background:#fff;color:#555;border:1px solid #ddd;border-radius:999px;padding:11px 20px;font-weight:800;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;gap:6px;transition:background .2s,border-color .2s,box-shadow .2s}
+        .manage-drop-btn:hover{background:#fafafa;border-color:#ccc;box-shadow:0 4px 12px rgba(0,0,0,.06)}
+        .manage-drop-btn .arrow{font-size:12px;color:#999;transition:transform .2s}
+        .forum-manage-drop.open .manage-drop-btn .arrow{transform:rotate(180deg)}
+        .manage-drop-menu{display:none;position:absolute;left:0;top:calc(100% + 8px);min-width:196px;background:#fff;border:1px solid #eee;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.12);z-index:200;overflow:hidden;animation:forumDropIn .18s ease}
+        .forum-manage-drop.open .manage-drop-menu{display:block}
+        @keyframes forumDropIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+        .manage-drop-menu button{display:block;width:100%;text-align:left;padding:12px 16px;border:0;background:#fff;color:#444;font-size:14px;cursor:pointer;font-family:inherit}
+        .manage-drop-menu button:hover{background:#fff5f5;color:#d92121}
+        .manage-drop-menu button.active{background:#fff1f2;color:#d92121;font-weight:700}
+        .forum-filter-bar{display:none;align-items:center;justify-content:space-between;gap:12px;margin:-8px 0 16px;padding:10px 14px;background:#fafafa;border:1px solid #eee;border-radius:10px;font-size:14px;color:#666}
+        .forum-filter-bar.show{display:flex}
+        .filter-back{border:0;background:transparent;color:#d92121;font-weight:700;cursor:pointer;font-size:14px;padding:4px 0}
+        .filter-back:hover{text-decoration:underline}
+        .post-item-main{padding:22px;cursor:pointer}
+        .post-item-main:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(217,33,33,.1)}
+        .post-title-row{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+        .post-title{font-size:19px;color:#222;font-weight:800;flex:1}
+        .post-badges{display:flex;gap:6px;flex-wrap:wrap}
+        .forum-badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
+        .forum-badge.notice{background:#fff1f2;color:#b91616}
+        .forum-badge.top{background:#fff3e0;color:#e65100}
+        .forum-badge.hidden{background:#f0f0f0;color:#666}
+        .post-meta{font-size:13px;color:#999;margin-bottom:10px;display:flex;gap:12px;flex-wrap:wrap}
+        .post-preview{font-size:14px;color:#666;line-height:1.8}
+        .post-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+        .pill{display:inline-flex;align-items:center;padding:6px 12px;border-radius:999px;background:#fff1f2;color:#b91616;font-size:12px;font-weight:700}
+        .pill.link{cursor:pointer}
+        .activity-link{color:#d92121;font-weight:700;cursor:pointer}
+        .write-btn{background:#d92121;color:#fff;border:0;border-radius:999px;padding:11px 20px;font-weight:800;cursor:pointer;font-size:14px}
+        .write-btn.outline{background:#fff;color:#d92121;border:1px solid #d92121}
+        .empty{text-align:center;color:#999;padding:40px}
+        .post-manage{display:flex;gap:8px;flex-wrap:wrap;padding:0 22px 16px;border-top:1px dashed #f3dadd;margin-top:-4px}
+        .pill-btn{padding:6px 12px;border-radius:999px;border:1px solid #d92121;background:#fff;color:#d92121;font-size:12px;font-weight:700;cursor:pointer}
+        .pill-btn.danger{border-color:#f53f3f;color:#f53f3f}
+        .img-grid{display:flex;flex-wrap:wrap;gap:10px}
+        .img-item{position:relative;width:100px;height:100px;border-radius:8px;overflow:hidden;border:1px solid #f2d8dc}
+        .img-item img{width:100%;height:100%;object-fit:cover}
+        .img-item button{position:absolute;top:4px;right:4px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;font-size:12px}
+        .upload-btn{display:inline-flex;align-items:center;justify-content:center;width:100px;height:100px;border:2px dashed #f3b8bf;border-radius:8px;color:#d92121;font-weight:700;cursor:pointer;background:#fff8f8}
+        .form-hint{font-size:12px;color:#999;margin-top:6px;line-height:1.5}
+        #forumComposeModal .activity-modal-panel{width:min(640px,100%)}
+    </style>
+</head>
+<body>
+<div class="main-content">
+    <div class="forum-head">
+        <div class="forum-head-left">
+            <h2>社区论坛</h2>
+            <div class="forum-manage-drop" id="forumManageDrop">
+                <button type="button" class="manage-drop-btn" id="forumManageBtn">管理帖子 <span class="arrow">▾</span></button>
+                <div class="manage-drop-menu" id="forumManageMenu"></div>
+            </div>
+        </div>
+        <div class="forum-actions">
+            <button type="button" class="write-btn" onclick="forumOpenPostModal()">发布帖子</button>
+            <button type="button" class="write-btn outline" id="forumNoticeBtn" onclick="forumOpenNoticeModal()">发布活动通知</button>
+        </div>
+    </div>
+    <p class="forum-desc">汇集活动心得、经验分享与活动通知。点击帖子进入详情，支持点赞与评论；关联活动可跳转至活动详情。</p>
+    <div class="forum-filter-bar" id="forumFilterBar">
+        <span id="forumFilterHint"></span>
+        <button type="button" class="filter-back" id="forumBackFeed">返回全部帖子</button>
+    </div>
+    <div class="post-list" id="postList"><div class="empty">加载中...</div></div>
+</div>
+
+<div class="activity-modal-overlay" id="forumComposeModal">
+    <div class="activity-modal-panel">
+        <h2 id="forumModalTitle">发布帖子</h2>
+        <form id="forumComposeForm" class="std-form-1col" onsubmit="return false;">
+            <div class="form-row">
+                <label class="form-label" for="forumPostTitle">标题<span style="color:#d92121">*</span></label>
+                <div class="form-field">
+                    <input id="forumPostTitle" type="text" maxlength="200" placeholder="请输入标题" required>
+                </div>
+            </div>
+            <div class="form-row" id="forumActivityRow">
+                <label class="form-label" for="forumActivityId">关联活动</label>
+                <div class="form-field">
+                    <select id="forumActivityId">
+                        <option value="">不关联活动</option>
+                    </select>
+                    <p class="form-hint" id="forumActivityHint"></p>
+                </div>
+            </div>
+            <div class="form-row align-top">
+                <label class="form-label" for="forumPostContent">内容<span style="color:#d92121">*</span></label>
+                <div class="form-field">
+                    <textarea id="forumPostContent" placeholder="请输入正文..." required></textarea>
+                </div>
+            </div>
+            <div class="form-row align-top">
+                <label class="form-label">图片上传</label>
+                <div class="form-field">
+                    <div class="img-grid" id="forumImgGrid">
+                        <label class="upload-btn" id="forumUploadLabel">+ 添加</label>
+                    </div>
+                    <input type="file" id="forumFileInput" accept="image/jpeg,image/png,image/gif,image/webp" multiple hidden>
+                    <p class="form-hint">支持 jpg、png、gif、webp，最多 8 张，单张不超过 5MB</p>
+                </div>
+            </div>
+            <div class="activity-modal-actions">
+                <button type="button" class="btn-modal-cancel" onclick="forumCloseModal()">取消</button>
+                <button type="submit" class="btn-publish" id="forumSubmitBtn">发布</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="js/common.js"></script>
+<script src="js/forum-common.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    if (!requireLogin("ADMIN")) return;
+    forumInitPage();
+});
+</script>
+</body>
+</html>

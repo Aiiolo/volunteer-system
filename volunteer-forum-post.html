@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0;url=volunteer-forum.html?action=post">
+    <title>发布帖子</title>
+</head>
+<body>
+<script>
+(function () {
+    const role = localStorage.getItem("backendRole") || "";
+    const map = { VOLUNTEER: "volunteer-forum.html", ADMIN: "admin-forum.html", ORGANIZER: "active-forum.html" };
+    const page = map[role] || "volunteer-forum.html";
+    location.replace(page + "?action=post");
+})();
+</script>
+</body>
+</html>

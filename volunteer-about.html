@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于我们</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        html,body {
+            height: auto;
+            overflow-x: hidden;
+        }
+        body {
+            background: #f8f8f8;
+            padding-top: 160px;
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #fff;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            z-index: 999;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .header-left .avatar {
+            width: 50px;
+            height: 50px;
+            background: #e0e0e0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 20px;
+        }
+        .header-left h1 {
+            font-size: 32px;
+            color: #222;
+        }
+        .header-left .tag {
+            background: #d92121;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .user-info {
+            font-size: 16px;
+        }
+        .role {
+            color: #d92121;
+            font-weight: bold;
+        }
+        .logout-btn {
+            background: #d92121;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .slogan {
+            text-align: right;
+            color: #d92121;
+            font-size: 18px;
+            margin-top: 5px;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .search-select {
+            border: 1px solid #d92121;
+            border-radius: 20px 0 0 20px;
+            padding: 8px 15px;
+            color: #d92121;
+        }
+        .search-input {
+            border: 1px solid #d92121;
+            border-left: none;
+            padding: 8px 15px;
+            width: 250px;
+        }
+        .search-btn {
+            background: #d92121;
+            color: white;
+            border: none;
+            padding: 9px 15px;
+            border-radius: 0 20px 20px 0;
+            cursor: pointer;
+        }
+        .nav-bar {
+            position: fixed;
+            top: 90px;
+            left: 0;
+            width: 100%;
+            background: #d92121;
+            display: flex;
+            justify-content: center;
+            z-index: 999;
+        }
+        .nav-item {
+            color: white;
+            padding: 15px 30px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .nav-item.active {
+            background: white;
+            color: #d92121;
+        }
+        .main-content {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 40px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .main-content h2 {
+            font-size: 26px;
+            color: #333;
+            margin-bottom: 30px;
+            padding-left: 15px;
+            border-left: 4px solid #d92121;
+        }
+        .main-content p {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 20px;
+            text-indent: 2em;
+        }
+    </style>
+</head>
+<body>
+<div class="top-header">
+    <div class="header-left">
+        <div class="avatar">👥</div>
+        <div>
+            <h1>三江学院志愿者服务系统 <span class="tag">江苏</span></h1>
+            <p style="color:#666;">江苏高校志愿服务平台</p>
+        </div>
+    </div>
+    <div class="header-right">
+        <div>
+            <div class="user-info">上午好，<span class="role">志愿者用户</span> <button class="logout-btn" onclick="logout()">退出登录</button></div>
+            <div class="slogan">奉献 友爱 互助 进步</div>
+        </div>
+        <div class="search-bar">
+            <div class="search-select">新闻文章 ▼</div>
+            <input type="text" class="search-input" placeholder="请输入关键词...">
+            <button class="search-btn">🔍</button>
+        </div>
+    </div>
+</div>
+<div class="nav-bar">
+    <div class="nav-item"><a href="volunteer.html">平台首页</a></div>
+    <div class="nav-item active"><a href="volunteer-about.html">关于我们</a></div>
+    <div class="nav-item"><a href="volunteer-stars.html">服务之星</a></div>
+    <div class="nav-item"><a href="volunteer-activity.html">活动报名</a></div>
+    <div class="nav-item"><a href="volunteer-message.html">我的消息</a></div>
+    <div class="nav-item"><a href="volunteer-forum.html">社区论坛</a></div>
+    <div class="nav-item"><a href="volunteer-profile.html">个人中心</a></div>
+</div>
+
+<div class="main-content">
+    <h2>平台简介</h2>
+    <p>三江学院志愿者服务系统是专为我校师生打造的一站式志愿服务综合平台，平台秉持奉献、友爱、互助、进步的志愿精神，整合校内外各类公益志愿资源，搭建志愿者与志愿活动之间便捷高效的沟通桥梁。</p>
+    <p>平台面向全体在校学生、教职工开放使用，用户可在线浏览志愿活动、一键报名参与、记录服务时长、查看志愿风采，同时方便活动管理者发布活动、审核报名人员、统筹志愿工作开展。</p>
+    <p>自平台上线以来，始终致力于引导广大青年学生积极投身公益事业，走进社区、走进敬老院、走进校园各处开展志愿服务活动，在实践中锤炼品格，增强社会责任感，用实际行动传递青春正能量，助力校园精神文明建设与社会公益事业发展。</p>
+    <h2 style="margin-top:40px;">服务宗旨</h2>
+    <p>以志愿之名，聚青春之力，服务师生群众，践行公益初心，打造规范化、信息化、便捷化的校园志愿服务体系。</p>
+    <h2 style="margin-top:40px;">联系我们</h2>
+    <p>服务地点：三江学院校内志愿服务中心</p>
+    <p>咨询时间：工作日 上午9:00-11:30 下午14:30-17:00</p>
+</div>
+
+<script>
+function logout() {
+    sessionStorage.clear();
+    window.location.href = "role-select.html";
+}
+</script>
+<script src="js/common.js"></script></body>
+</html>

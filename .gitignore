@@ -1,3 +1,4 @@
+target/
 # Logs
 logs
 *.log
@@ -141,3 +142,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+.dockerignore
+/.idea
+frontend/images/index video.mp4

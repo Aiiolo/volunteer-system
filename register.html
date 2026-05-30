@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>志愿者注册</title>
+    <link rel="stylesheet" href="css/theme.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", sans-serif; }
+        body { min-height: 100vh; background: linear-gradient(135deg, #fff0f3, #ffe1e6); display: flex; align-items: center; justify-content: center; padding: 36px; }
+        .register-box { width: min(1150px, 100%); display: grid; grid-template-columns: 1fr 2fr; background: #fff; border-radius: 22px; overflow: hidden; box-shadow: 0 15px 44px rgba(217,33,33,.12); }
+        .side { background: linear-gradient(135deg, #98111a, #d92121 58%, #ff7a7a); color: #fff; padding: 50px 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; overflow: hidden; }
+        .side::before,.side::after { content: ""; position: absolute; border-radius: 50%; background: rgba(255,255,255,.16); }
+        .side::before { width: 140px; height: 140px; right: -40px; top: 40px; }
+        .side::after { width: 90px; height: 90px; left: 12px; bottom: 32px; }
+        .side h1 { font-size: 48px; font-weight: bold; line-height: 1.25; margin-bottom: 22px; position: relative; z-index: 1; }
+        .side p { font-size: 17px; line-height: 1.85; opacity: .95; position: relative; z-index: 1; max-width: 100%; padding: 0 4px; }
+        .form { padding: 52px 62px; }
+        .form h2 { color: #333; font-size: 24px; text-align: center; margin-bottom: 10px; }
+        .desc { color: #777; font-size: 15px; text-align: center; margin-bottom: 32px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .field label { display: block; color: #555; font-size: 15px; margin-bottom: 8px; }
+        .field input, .field textarea { width: 100%; border: none; background: #f7f7f7; border-radius: 30px; padding: 16px 21px; font-size: 15px; outline: none; }
+        .field textarea { border-radius: 17px; min-height: 90px; resize: vertical; }
+        .field.full { grid-column: 1 / 3; }
+        .field-hint { font-size: 13px; margin-top: 8px; min-height: 20px; line-height: 1.4; padding-left: 5px; color: #d92121; }
+        .label-spacer { visibility: hidden; }
+        .captcha-box {
+            width: 150px;
+            height: 60px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: #666;
+            cursor: pointer;
+            user-select: none;
+            flex-shrink: 0;
+        }
+        .btn { width: 100%; margin-top: 28px; border: none; border-radius: 35px; padding: 17px; background: linear-gradient(135deg, #ff7a7a, #d92121); color: #fff; font-size: 21px; font-weight: bold; cursor: pointer; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        #msg { min-height: 26px; text-align: center; margin-top: 18px; font-size: 15px; }
+        .links { text-align: center; margin-top: 18px; color: #666; font-size: 15px; }
+        .links a { color: #d92121; text-decoration: none; font-weight: bold; }
+        @media (max-width: 1060px) {
+            .register-box { grid-template-columns: 1fr; }
+            .side { display: none; }
+            .grid { grid-template-columns: 1fr; }
+            .field.full { grid-column: 1; }
+        }
+    </style>
+</head>
+<body>
+<div class="register-box">
+    <div class="side">
+        <h1>志愿者注册</h1>
+        <p>注册后账号将进入待审核状态，管理员审核通过后即可登录系统。</p>
+    </div>
+    <div class="form">
+        <h2>创建志愿者账号</h2>
+        <p class="desc">请填写真实信息，便于活动审核与服务记录统计</p>
+        <div class="grid">
+            <div class="field">
+                <label>学号</label>
+                <input id="username" placeholder="请输入学号">
+            </div>
+            <div class="field">
+                <label>真实姓名</label>
+                <input id="realName" placeholder="请输入姓名">
+            </div>
+            <div class="field">
+                <label>手机号</label>
+                <input id="phone" type="tel" maxlength="11" placeholder="请输入手机号" autocomplete="tel">
+                <div id="phoneHint" class="field-hint"></div>
+            </div>
+            <div class="field">
+                <label>年龄</label>
+                <input id="age" type="number" placeholder="请输入年龄">
+            </div>
+            <div class="field">
+                <label>密码</label>
+                <input id="password" type="password" placeholder="至少6位">
+            </div>
+            <div class="field">
+                <label>确认密码</label>
+                <input id="confirmPassword" type="password" placeholder="再次输入密码">
+                <div id="confirmPasswordHint" class="field-hint"></div>
+            </div>
+            <div class="field">
+                <label>验证码</label>
+                <input type="text" id="captcha" placeholder="请输入验证码">
+            </div>
+            <div class="field">
+                <label class="label-spacer" aria-hidden="true">验证码</label>
+                <div class="captcha-box" id="captchaDisplay" title="点击刷新验证码"></div>
+            </div>
+            <div class="field full">
+                <label>技能特长</label>
+                <textarea id="skills" placeholder="如：摄影、秩序维护、文案整理"></textarea>
+            </div>
+            <div class="field full">
+                <label>服务偏好</label>
+                <textarea id="preferences" placeholder="如：校园服务、社区服务、环保活动"></textarea>
+            </div>
+        </div>
+        <button class="btn" id="registerBtn" onclick="registerVolunteer()">提交注册</button>
+        <div id="msg"></div>
+        <div class="links">已有账号？<a href="login.html" onclick="localStorage.setItem('userRole','volunteer')">返回登录</a></div>
+    </div>
+</div>
+<script>
+const API_BASE = "http://localhost:8080";
+const CHINA_PHONE_REG = /^1[3-9]\d{9}$/;
+
+let currentCaptcha = "";
+
+function generateCaptcha() {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let code = "";
+    for (let i = 0; i < 4; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+}
+
+function refreshCaptcha() {
+    currentCaptcha = generateCaptcha();
+    document.getElementById("captchaDisplay").textContent = currentCaptcha;
+}
+
+function setMsg(text, color) {
+    const msg = document.getElementById("msg");
+    msg.innerText = text;
+    msg.style.color = color || "#d92121";
+}
+
+function value(id) { return document.getElementById(id).value.trim(); }
+
+function isValidChinaPhone(phone) {
+    return CHINA_PHONE_REG.test(phone);
+}
+
+function setPhoneHint(text) {
+    document.getElementById("phoneHint").textContent = text;
+}
+
+function validatePhone() {
+    const phone = value("phone");
+    if (!phone) {
+        setPhoneHint("");
+        return false;
+    }
+    if (!isValidChinaPhone(phone)) {
+        setPhoneHint("请输入正确的手机号格式");
+        return false;
+    }
+    setPhoneHint("");
+    return true;
+}
+
+function setConfirmPasswordHint(text) {
+    document.getElementById("confirmPasswordHint").textContent = text;
+}
+
+function validateConfirmPassword() {
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+    if (!confirmPassword) {
+        setConfirmPasswordHint("");
+        return false;
+    }
+    if (password !== confirmPassword) {
+        setConfirmPasswordHint("两次输入的密码不一致");
+        return false;
+    }
+    setConfirmPasswordHint("");
+    return true;
+}
+
+function initPhoneValidation() {
+    const phoneInput = document.getElementById("phone");
+    phoneInput.addEventListener("input", () => {
+        phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 11);
+        if (phoneInput.value.length > 0) {
+            validatePhone();
+        } else {
+            setPhoneHint("");
+        }
+    });
+    phoneInput.addEventListener("blur", validatePhone);
+}
+
+function initConfirmPasswordValidation() {
+    const passwordInput = document.getElementById("password");
+    const confirmInput = document.getElementById("confirmPassword");
+    confirmInput.addEventListener("input", validateConfirmPassword);
+    confirmInput.addEventListener("blur", validateConfirmPassword);
+    passwordInput.addEventListener("input", () => {
+        if (confirmInput.value) {
+            validateConfirmPassword();
+        }
+    });
+}
+
+async function registerVolunteer() {
+    const username = value("username");
+    const realName = value("realName");
+    const phone = value("phone");
+    const password = value("password");
+    const confirmPassword = value("confirmPassword");
+    const ageText = value("age");
+    const captcha = value("captcha");
+    const btn = document.getElementById("registerBtn");
+
+    if (!username || !realName || !phone || !password || !confirmPassword) {
+        setMsg("请填写学号、姓名、手机号和密码");
+        return;
+    }
+    if (!validatePhone()) {
+        setMsg("请填写正确的手机号");
+        return;
+    }
+    if (password.length < 6) { setMsg("密码至少需要 6 位"); return; }
+    if (!validateConfirmPassword()) {
+        setMsg("两次输入的密码不一致");
+        return;
+    }
+    if (captcha.toLowerCase() !== currentCaptcha.toLowerCase()) {
+        setMsg("验证码错误");
+        refreshCaptcha();
+        return;
+    }
+
+    const age = ageText ? Number(ageText) : null;
+    if (age !== null && (Number.isNaN(age) || age < 0 || age > 120)) { setMsg("年龄填写不合法"); return; }
+
+    btn.disabled = true;
+    btn.innerText = "提交中...";
+    setMsg("正在提交注册申请...", "#666");
+
+    try {
+        const response = await fetch(`${API_BASE}/api/v1/volunteer/auth/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password, realName, age, skills: value("skills"), preferences: value("preferences") })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || "注册失败");
+        localStorage.setItem("userRole", "volunteer");
+        setMsg("注册成功，请等待管理员审核。即将返回登录页...", "#19be6b");
+        setTimeout(() => location.href = "login.html", 1200);
+    } catch (error) {
+        setMsg(error.message || "注册失败，请确认后端服务已启动");
+        btn.disabled = false;
+        btn.innerText = "提交注册";
+    }
+}
+
+document.addEventListener("keydown", e => { if (e.key === "Enter") registerVolunteer(); });
+initPhoneValidation();
+initConfirmPasswordValidation();
+refreshCaptcha();
+document.getElementById("captchaDisplay").addEventListener("click", refreshCaptcha);
+</script>
+</body>
+</html>
